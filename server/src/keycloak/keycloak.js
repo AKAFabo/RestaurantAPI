@@ -7,13 +7,13 @@ const keycloak = new Keycloak(
   { store: memoryStore },
   {
     realm: "restaurant-realm",
-    "auth-server-url": "http://localhost:8080/",
+    "auth-server-url": "http://localhost:8080",
     "ssl-required": "external",
     resource: "restaurant-api",
+    "bearer-only": true,
     credentials: {
-      secret: "ZJBJJF8pz2Scn3hiIrVPVVvTSqjo8Y8k"
+      secret: "xkHYIFX9ICimg7GmKX7u8bFHDTOJg6KB",
     },
-    "confidential-port": 0
   }
 );
 
