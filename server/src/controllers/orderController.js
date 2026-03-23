@@ -1,31 +1,39 @@
-import * as orderDAO from "../daos/orderDAO.js";
+
+import * as orderDAO from "../daos/orderDao.js";
+import * as userDAO from "../daos/reservationDao.js";
 
 export const createOrder = async (req, res) => {
   try {
 
-    //  Datos del body
     const { restaurant_id, reservation_id, items } = req.body;
 
-    //  Usuario desde token
     const user = req.kauth?.grant?.access_token?.content;
-    const user_id = user?.sub;
+    const email = user?.email;
 
-    //  Validaciones
+    // validaciones
     if (!restaurant_id || !items || items.length === 0) {
       return res.status(400).json({
         error: "restaurant_id e items son requeridos"
       });
     }
 
-    if (!user_id) {
+    if (!email) {
       return res.status(401).json({
         error: "Usuario no autenticado"
       });
     }
 
-    //  DAO
+    //  buscar usuario en BD
+    const dbUser = await userDAO.getByEmail(email);
+
+    if (!dbUser) {
+      return res.status(404).json({
+        error: "Usuario no existe en la BD"
+      });
+    }
+
     const order = await orderDAO.create({
-      user_id,
+      user_id: dbUser.id, // 👈 FIX AQUÍ
       restaurant_id,
       reservation_id,
       items
@@ -44,16 +52,17 @@ export const createOrder = async (req, res) => {
     });
   }
 };
+
+
+
 export const getOrderById = async (req, res) => {
   try {
 
     const { id } = req.params;
 
-    //  usuario desde token
     const user = req.kauth?.grant?.access_token?.content;
-    const user_id = user?.sub;
+    const email = user?.email;
 
-    //  roles
     const roles = user?.realm_access?.roles || [];
 
     if (!id) {
@@ -62,23 +71,36 @@ export const getOrderById = async (req, res) => {
       });
     }
 
+    if (!email) {
+      return res.status(401).json({
+        error: "Usuario no autenticado"
+      });
+    }
+
+    //  obtener usuario REAL de la BD
+    const dbUser = await userDAO.getByEmail(email);
+
+    if (!dbUser) {
+      return res.status(404).json({
+        error: "Usuario no existe en la BD"
+      });
+    }
+
     const order = await orderDAO.getById(id);
 
-    //  no existe
     if (!order) {
       return res.status(404).json({
         error: "Pedido no encontrado"
       });
     }
 
-    //  validar  si no es admin
-    if (!roles.includes("admin") && order.user_id !== user_id) {
+    
+    if (!roles.includes("admin") && order.user_id !== dbUser.id) {
       return res.status(403).json({
         error: "No tienes permiso para ver este pedido"
       });
     }
 
-    //  respuesta
     res.json(order);
 
   } catch (error) {

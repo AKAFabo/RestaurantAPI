@@ -1,66 +1,67 @@
-import pool from "../config/database.js";
-
-export const createreservaion = async({user_id,table_id,reservation_time}) =>{
-
-    const client = await pool.connect();
-
-    try{
-
-        // verificar si la mesa existe
-        await client.query("BEGIN");
-        const tablacheck = await client.query(
-            `SELECT id FROM tables WHERE id = $1`,
-            [table_id]
-        );
-
-        if (tablacheck.row.length===0){
-            await client.query("ROLLBACK");
-
-            throw new Error("Mesa no existe");
-        }
-        // verificar si ya hay una reserva para esa mesa 
-        const disponibilidad= await client.query(
-            `SELECT id FROM tables WHERE id = $1`,
-            [table_id]
-
-        );
-
-        if (disponibilidad.row.length>0){
-            await client.query("ROLLBACK")
-            throw new Error("Mesa no esta disponible en ese horario")
-
-        }
-
-        // crear reserva 
-        const insertQuery = `
-        INSERT INTO reservations 
-        (user_id, table_id, reservation_time, status, created_at)
-        VALUES ($1, $2, $3, 'active', NOW())
-        RETURNING *
-        `;
-
-        const result = await client.query(insertQuery, [
-        user_id,
-        table_id,
-        reservation_time
-        ]);
-
-        await client.query("COMMIT");
-        return result.rows[0];
+import {pool} from "../config/database.js";
 
 
 
+export const createReservation = async ({
+  user_id,
+  table_id,
+  reservation_time,
+  party_size
+}) => {
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // verificar mesa
+    const tableCheck = await client.query(
+      `SELECT id FROM tables WHERE id = $1`,
+      [table_id]
+    );
+
+    if (tableCheck.rows.length === 0) {
+      throw new Error("Mesa no existe");
     }
-    catch (error){
-        await client.query("ROLLBACK");
-        throw error;
 
-    } finally{
-        client.release()
+    // verificar disponibilidad
+    const availabilityCheck = await client.query(
+      `
+      SELECT id FROM reservations
+      WHERE table_id = $1
+      AND reservation_time = $2
+      AND status = 'CONFIRMED'
+      `,
+      [table_id, reservation_time]
+    );
+
+    if (availabilityCheck.rows.length > 0) {
+      throw new Error("Mesa no disponible en ese horario");
     }
-}
 
+    // crear reserva
+    const result = await client.query(
+      `
+      INSERT INTO reservations
+      (user_id, table_id, reservation_time, party_size, status)
+      VALUES ($1, $2, $3, $4, 'CONFIRMED')
+      RETURNING *
+      `,
+      [user_id, table_id, reservation_time, party_size]
+    );
 
+    await client.query("COMMIT");
+
+    return result.rows[0];
+
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+
+  } finally {
+    client.release();
+  }
+};
 
 export const deletereservation = async (reservation_id, user_id) => {
 
@@ -117,4 +118,20 @@ export const deletereservation = async (reservation_id, user_id) => {
   } finally {
     client.release();
   }
+};
+
+
+
+export const getByEmail = async (email) => {
+
+  const result = await pool.query(
+    `
+    SELECT id, name, email, role_id
+    FROM users
+    WHERE email = $1
+    `,
+    [email]
+  );
+
+  return result.rows[0] || null;
 };

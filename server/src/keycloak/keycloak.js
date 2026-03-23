@@ -1,5 +1,6 @@
 import session from "express-session";
 import Keycloak from "keycloak-connect";
+import 'dotenv/config';
 
 const memoryStore = new session.MemoryStore();
 
@@ -12,7 +13,7 @@ const keycloak = new Keycloak(
     resource: "restaurant-api",
     "bearer-only": true,
     credentials: {
-      secret: "xkHYIFX9ICimg7GmKX7u8bFHDTOJg6KB",
+      secret: process.env.KEYCLOAK_CLIENT_SECRET,
     },
   }
 );

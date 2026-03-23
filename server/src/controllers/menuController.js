@@ -64,31 +64,36 @@ export const updateMenubyId = async (req,res) =>{
 
 };
 
-export const deletemenu = async (req,res) =>{
-    try{
 
-        const { id} = req.params;
-        // validacion del id
-    if (!id){
-        return res.status(400).json({error:"Id requerido"});
 
+export const deleteMenu = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        error: "ID requerido"
+      });
     }
 
+    const menu = await menuDao.deleteMenu(id);
 
-
-    const menu = await menuDao.deletemenu(id);
-
-    if (!menu){
-        return res.status(404).json({error:"Menu no encontrado"});
+    if (!menu) {
+      return res.status(404).json({
+        error: "Menú no encontrado"
+      });
     }
 
+    res.json({
+      message: "Menú eliminado correctamente"
+    });
 
-    res.json({message:"Menu eliminado correctamente"});
-    }
-    catch(error){
-        console.error("Error eliminando el menu");
-        res.status(500).json({error:"Error eliminando el menu"});
-    }
+  } catch (error) {
+    console.error("Error eliminando menú:", error);
 
-
+    res.status(500).json({
+      error: "Error eliminando menú"
+    });
+  }
 };

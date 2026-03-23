@@ -1,7 +1,7 @@
-import pool from "../config/database.js";
-import { deletemenu } from "../controllers/menuController.js";
+import { pool } from "../config/database.js";
 
-export const getById = async (id) => {
+
+export const getMenuById = async (id) => {
 
   //  Obtener datos  del menú
   const menuQuery = `
@@ -55,50 +55,24 @@ export const updateMenubyId = async(id,name)=>{
     return result.rows[0];
 }
 
-export const deletemenu = async(id) =>{
-  const client = await pool.connect();
-
-  try{
-    await client.query("Begin ");
-
-    const checkquery= `SELECT id FROM menus WHERE id = $1`;
-    const checkresult= await client.query(checkquery,[id]);
-
-    if (checkresult.rows.length===0){
-
-      await client.query("ROLLBACK");
-      return false;
-    }
-
-    const deleteProducts=`
-      DELETE FROM products
-      WHERE menu_id = $1
-    `;
-
-    await client.query(deleteProducts,[id]);
-
-    const deletemenuQ = `
-      DELETE FROM products
-      WHERE menu_id = $1
-    `;
-    await client.query(deletemenuQ,[id]);
-
-    await client.query("COMMIT");
-    return true;
 
 
+export const deleteMenu = async (id) => {
 
+  // borrar order_items relacionados
+  await pool.query(`
+    DELETE FROM order_items
+    WHERE product_id IN (
+      SELECT id FROM products WHERE menu_id = $1
+    )
+  `, [id]);
 
+  //  borrar menu esto borrar products en cascade
+  const result = await pool.query(`
+    DELETE FROM menus
+    WHERE id = $1
+    RETURNING *
+  `, [id]);
 
-  } catch(error){
-
-    await client.query("ROLLBACK");
-    throw error;
-  }
-  finally{
-    client.release();
-  }
-
-
-
+  return result.rows[0] || null;
 };
