@@ -23,7 +23,7 @@ app.use(
 );
 
 app.use(keycloak.middleware());
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // documentacion 
 app.use('/api', routes);
 
 const startServer = async () => {

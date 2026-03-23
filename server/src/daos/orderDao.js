@@ -50,7 +50,7 @@ export const create = async ({ user_id, restaurant_id, reservation_id, items }) 
       item.price = product.price;
     }
 
-    //  INSERT CORRECTO
+    //  
     const orderResult = await client.query(
       `
       INSERT INTO orders

@@ -5,35 +5,35 @@ import * as userDAO from "../daos/reservationDao.js";
 export const createOrder = async (req, res) => {
   try {
 
-    const { restaurant_id, reservation_id, items } = req.body;
+    const { restaurant_id, reservation_id, items } = req.body; // paremetros del body
 
-    const user = req.kauth?.grant?.access_token?.content;
-    const email = user?.email;
+    const user = req.kauth?.grant?.access_token?.content;  // obtiene el id de key 
+    const email = user?.email; // obtiene el email del token 
 
-    // validaciones
+    // validaciones de los parametros requeridos
     if (!restaurant_id || !items || items.length === 0) {
       return res.status(400).json({
         error: "restaurant_id e items son requeridos"
       });
     }
 
-    if (!email) {
+    if (!email) { // verifica que el  usuario este en keycloak
       return res.status(401).json({
         error: "Usuario no autenticado"
       });
     }
 
     //  buscar usuario en BD
-    const dbUser = await userDAO.getByEmail(email);
+    const dbUser = await userDAO.getByEmail(email); // obtiene el id del user de la db por medio del email 
 
-    if (!dbUser) {
+    if (!dbUser) { // validacion de usuariok
       return res.status(404).json({
         error: "Usuario no existe en la BD"
       });
     }
 
-    const order = await orderDAO.create({
-      user_id: dbUser.id, // 👈 FIX AQUÍ
+    const order = await orderDAO.create({ // llamada al dao 
+      user_id: dbUser.id, //  usa el id de la db para crear la orden 
       restaurant_id,
       reservation_id,
       items
@@ -41,7 +41,7 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json({
       message: "Pedido creado",
-      order
+      order // muestra la orden 
     });
 
   } catch (error) {
@@ -58,13 +58,13 @@ export const createOrder = async (req, res) => {
 export const getOrderById = async (req, res) => {
   try {
 
-    const { id } = req.params;
+    const { id } = req.params; // parametro
 
-    const user = req.kauth?.grant?.access_token?.content;
-    const email = user?.email;
+    const user = req.kauth?.grant?.access_token?.content; // user de key 
+    const email = user?.email; // email de key 
 
-    const roles = user?.realm_access?.roles || [];
-
+    const roles = user?.realm_access?.roles || []; // obtener el rol que tiene el user
+    // validaciones de params
     if (!id) {
       return res.status(400).json({
         error: "ID requerido"
@@ -86,7 +86,7 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    const order = await orderDAO.getById(id);
+    const order = await orderDAO.getById(id); // se obtiene la orden 
 
     if (!order) {
       return res.status(404).json({
@@ -95,7 +95,7 @@ export const getOrderById = async (req, res) => {
     }
 
     
-    if (!roles.includes("admin") && order.user_id !== dbUser.id) {
+    if (!roles.includes("admin") && order.user_id !== dbUser.id) { // verifica los permisos del user 
       return res.status(403).json({
         error: "No tienes permiso para ver este pedido"
       });

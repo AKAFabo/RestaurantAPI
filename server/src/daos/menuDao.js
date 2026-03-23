@@ -3,7 +3,7 @@ import { pool } from "../config/database.js";
 
 export const getMenuById = async (id) => {
 
-  //  Obtener datos  del menú
+  //  Obtener datos  del men2
   const menuQuery = `
     SELECT id, restaurant_id, name, created_at
     FROM menus
@@ -19,7 +19,7 @@ export const getMenuById = async (id) => {
 
   const menu = menuResult.rows[0];
 
-  // Obtener productos del menú
+  // Obtener productos del menu 
   const productsQuery = `
     SELECT id, name, description, price, available
     FROM products
@@ -28,7 +28,7 @@ export const getMenuById = async (id) => {
 
   const productsResult = await pool.query(productsQuery, [id]);
 
-  //  Agregar productos al menú
+  //  Agregar productos al menu
   menu.products = productsResult.rows;
 
   return menu;
@@ -45,7 +45,7 @@ export const updateMenubyId = async(id,name)=>{
   `;
 
 
-    const values = [name,id]
+    const values = [name,id] // los obtiene de la base 
     const result = await pool.query(query,values)
 
     if (result.rows.length===0){

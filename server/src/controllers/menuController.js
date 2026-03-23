@@ -11,14 +11,14 @@ export const getMenuById = async (req,res) =>{
 
 
 
-    const menu = await menuDao.getMenuById(id);
+    const menu = await menuDao.getMenuById(id); // obtener informacion del menu
 
     if (!menu){
         return res.status(404).json({error:"Menu no encontrado"});
     }
 
 
-    res.json(menu);
+    res.json(menu); // devolver informacion 
     }
     catch(error){
         console.error(error);
@@ -30,7 +30,7 @@ export const getMenuById = async (req,res) =>{
 
 export const updateMenubyId = async (req,res) =>{
     try{
-
+        // parametros
         const { id} = req.params;
 
         const {name} = req.body;
@@ -40,21 +40,21 @@ export const updateMenubyId = async (req,res) =>{
 
     }
 
-    if(!name ){
+    if(!name ){ // validacion del nombre
         return res.status(400).json({error:"Nombre requerido"});
 
     }
 
 
 
-    const menu = await menuDao.updateMenubyId(id,name);
+    const menu = await menuDao.updateMenubyId(id,name); // hacer la actualizacionn
 
-    if (!menu){
+    if (!menu){ // errores posibles 
         return res.status(404).json({error:"Menu no encontrado"});
     }
 
 
-    res.json({message:"Menu actualizado", menu:menu});
+    res.json({message:"Menu actualizado", menu:menu}); // si se encontro sin problemas
     }
     catch(error){
         console.error(error);
@@ -69,23 +69,23 @@ export const updateMenubyId = async (req,res) =>{
 export const deleteMenu = async (req, res) => {
   try {
 
-    const { id } = req.params;
+    const { id } = req.params; // parametro del url
 
-    if (!id) {
+    if (!id) {// validacion del id 
       return res.status(400).json({
         error: "ID requerido"
       });
     }
 
-    const menu = await menuDao.deleteMenu(id);
+    const menu = await menuDao.deleteMenu(id); // elimina el menu y devuelve
 
-    if (!menu) {
+    if (!menu) { // en caso de que no se encuentre el menu que se queria eliminar 
       return res.status(404).json({
         error: "Menú no encontrado"
       });
     }
 
-    res.json({
+    res.json({ // caso exitoso
       message: "Menú eliminado correctamente"
     });
 

@@ -1,5 +1,7 @@
 import swaggerJsdoc from "swagger-jsdoc";
 
+// configuracion de la pagina de swagger 
+
 const options = {
   definition: {
     openapi: "3.0.0",
@@ -15,7 +17,7 @@ const options = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
+        bearerAuth: { // para poner el token 
           type: "http",
           scheme: "bearer",
           bearerFormat: "JWT",
@@ -23,7 +25,7 @@ const options = {
       },
     },
   },
-  apis: ["./routes/*.js"],
+  apis: ["./routes/*.js"], // en donde se obtienen los endpoints 
 };
 
 const swaggerSpec = swaggerJsdoc(options);

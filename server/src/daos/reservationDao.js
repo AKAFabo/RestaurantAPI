@@ -121,7 +121,7 @@ export const deletereservation = async (reservation_id, user_id) => {
 };
 
 
-
+// para obtener los user id de la base por medio del email 
 export const getByEmail = async (email) => {
 
   const result = await pool.query(

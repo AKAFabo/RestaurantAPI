@@ -13,6 +13,8 @@ const router = express.Router();
 router.use('/health', healthRouter);
 
 
+// permisos de keycloak
+
 /*  Pública */
 router.get("/public", (req, res) => {
   res.json({ message: "Ruta pública" });

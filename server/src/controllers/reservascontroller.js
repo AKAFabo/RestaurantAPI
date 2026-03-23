@@ -6,10 +6,10 @@ import * as reservationDAO from "../daos/reservationDao.js";
 export const createReservation = async (req, res) => {
   try {
 
-    const { table_id, reservation_time, party_size } = req.body;
+    const { table_id, reservation_time, party_size } = req.body; // parametros requeridos 
 
-    const user = req.kauth?.grant?.access_token?.content;
-    const email = user?.email;
+    const user = req.kauth?.grant?.access_token?.content; // user del key 
+    const email = user?.email; // usuerio del key 
 
     // validaciones
     if (!table_id || !reservation_time || !party_size) {
@@ -25,7 +25,7 @@ export const createReservation = async (req, res) => {
     }
 
    
-    const dbUser = await reservationDAO .getByEmail(email);
+    const dbUser = await reservationDAO .getByEmail(email); // obtengo el user id de la base por medio del email
 
     if (!dbUser) {
       return res.status(404).json({
@@ -33,8 +33,8 @@ export const createReservation = async (req, res) => {
       });
     }
 
-    const reservation = await reservationDAO.createReservation({
-      user_id: dbUser.id,
+    const reservation = await reservationDAO.createReservation({// crea la reservacion 
+      user_id: dbUser.id, 
       table_id,
       reservation_time,
       party_size
@@ -59,9 +59,9 @@ export const deletereservation = async (req,res) =>{
 
     const { id } = req.params;
 
-    const user = req.kauth?.grant?.access_token?.content;
-    const email = user?.email;
-
+    const user = req.kauth?.grant?.access_token?.content; // key id del usuario 
+    const email = user?.email;// email del key del user 
+    // validaciones 
     if (!id) {
       return res.status(400).json({
         error: "ID requerido"
@@ -75,7 +75,7 @@ export const deletereservation = async (req,res) =>{
     }
 
    
-    const dbUser = await reservationDAO.getByEmail(email);
+    const dbUser = await reservationDAO.getByEmail(email); // obtiene el id de la db 
 
     if (!dbUser) {
       return res.status(404).json({
@@ -84,7 +84,7 @@ export const deletereservation = async (req,res) =>{
     }
 
     
-    const result = await reservationDAO.deletereservation(id, dbUser.id);
+    const result = await reservationDAO.deletereservation(id, dbUser.id); // elimina la reserva 
 
     if (result === "NOT_FOUND") {
       return res.status(404).json({
