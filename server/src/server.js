@@ -5,6 +5,8 @@ import config from "./config/environment.js";
 import connectDatabase from "./config/database.js";
 import routes from './routes/router.js';
 import { keycloak, memoryStore } from "./keycloak/keycloak.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./docs/swagger.js";
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(
 );
 
 app.use(keycloak.middleware());
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', routes);
 
 const startServer = async () => {
