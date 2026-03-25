@@ -1,10 +1,12 @@
 import { pool } from "../config/database.js";
+import { createKeycloakUser } from "../services/keycloakService.js";
 import crypto from "crypto";
 
 const userDAO = {
 
     async getUsers() {
         try {
+
             const result = await pool.query('SELECT * FROM users');
             return result.rows;
         } catch (error) {
@@ -15,7 +17,9 @@ const userDAO = {
 
     async registerUser({ email, name, password }) {
         try {
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+            await createKeycloakUser({ email, name, password }); // Keycloak user creation
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');         
 
             const result = await pool.query(
                 'INSERT INTO users (email, name, password_hash) VALUES ($1, $2, $3) RETURNING *',
