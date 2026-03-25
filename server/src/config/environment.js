@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { keycloak } from '../keycloak/keycloak';
 
 dotenv.config();
 
@@ -17,6 +18,13 @@ const config = {
     port: process.env.PORT || 3001,
     nodeEnv: process.env.NODE_ENV || 'development'
   },
+
+  keycloak: {
+    url: process.env.KEYCLOACK_URL || 'http://localhost:8080',
+    realm: process.env.KEYCLOAK_REALM || 'restaurant-realm',
+    clientId: process.env.KEYCLOAK_CLIENT_ID || 'restaurant-api',
+    clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+  }
 
 
 };

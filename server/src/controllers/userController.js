@@ -1,4 +1,9 @@
+import axios from 'axios';
 import userDAO from '../daos/userDao.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 
 const userController = {
 
@@ -36,16 +41,50 @@ const userController = {
                 return res.status(400).json({ error: 'Email and password are required' });
             }
 
-            const user = await userDAO.authUser(email, password);
+            const response = await axios.post(
+                `http://localhost:8080/realms/restaurant-realm/protocol/openid-connect/token`,
+                new URLSearchParams({
+                    client_id: 'restaurant-api',
+                    client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+                    grant_type: 'password',
+                    username: email,
+                    password: password,
+                }),
+                {
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                }
+            );
+            res.json(response.data);
 
-            if (!user) {
-                return res.status(401).json({ error: 'Invalid email or password' });
-            }
-
-            res.json(user);
         } catch (error) {
             console.error('Error authenticating user:', error);
-            res.status(500).json({ error: 'Error authenticating user' });
+            res.status(401).json({ error: 'Invalid email or password' });
+        }
+    },
+
+    async getMe(req, res) {
+        try {  
+            const token = req.kauth?.grant?.access_token?.content;
+            const email = token?.email;
+            const dbUser = await userDAO.getByEmail(email);
+
+            if (!dbUser) {
+                return res.status(404).json({ error: 'User not found in database' });
+            }
+
+            const userInfo = {
+                email: dbUser.email,
+                name: dbUser.name,
+                id: dbUser.id,
+                roles: token?.realm_access?.roles || [],
+            };
+
+            res.json(userInfo);
+        } catch (error) {
+            console.error('Error fetching user info:', error);
+            res.status(500).json({ error: 'Error fetching user info' });
         }
     }
 };

@@ -45,4 +45,47 @@ export async function createKeycloakUser({ email, password, name }) {
       },
     }
   );
+
+  const userId = await getUserIdByEmail(email, adminToken);
+  const userRole = await getRole(adminToken, "client");
+  await assignRoleToUser(userId, userRole, adminToken);
+}
+
+async function getUserIdByEmail(email, token) {
+  const res = await axios.get(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${email}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data[0]?.id;
+}
+
+async function getRole(token, roleName) {
+  const res = await axios.get(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/roles/${roleName}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data;
+}
+
+async function assignRoleToUser(userId, role, token) {
+  await axios.post(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
+    [role],
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
 }

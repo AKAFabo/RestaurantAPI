@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: "my-secret",
+    secret: config.keycloak.clientSecret,
     resave: false,
     saveUninitialized: true,
     store: memoryStore
