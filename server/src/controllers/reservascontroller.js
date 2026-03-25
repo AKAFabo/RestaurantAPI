@@ -1,5 +1,3 @@
-
-
 import * as reservationDAO from "../daos/reservationDao.js";
 
 
@@ -9,7 +7,7 @@ export const createReservation = async (req, res) => {
     const { table_id, reservation_time, party_size } = req.body; // parametros requeridos 
 
     const user = req.kauth?.grant?.access_token?.content; // user del key 
-    const email = user?.email; // usuerio del key 
+    const email = user?.email; // usuario del key 
 
     // validaciones
     if (!table_id || !reservation_time || !party_size) {
@@ -25,7 +23,7 @@ export const createReservation = async (req, res) => {
     }
 
    
-    const dbUser = await reservationDAO .getByEmail(email); // obtengo el user id de la base por medio del email
+    const dbUser = await reservationDAO.getByEmail(email); // obtengo el user id de la base por medio del email
 
     if (!dbUser) {
       return res.status(404).json({
