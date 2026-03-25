@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { keycloak } from '../keycloak/keycloak';
+import { keycloak } from '../keycloak/keycloak.js';
 
 dotenv.config();
 

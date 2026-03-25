@@ -32,21 +32,6 @@ const userDAO = {
         }
     },
 
-    async authUser(email, password) {
-        try {
-            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex'); //Hash pass to store in db
-
-            const result = await pool.query(
-                'SELECT * FROM users WHERE email = $1 AND password_hash = $2',
-                [email, hashedPassword]
-            );
-            return result.rows[0];
-        } catch (error) {
-            console.error('Error authenticating user:', error);
-            throw error;
-        }
-    },
-
     async getByEmail(email) {
         try {
             const result = await pool.query(
