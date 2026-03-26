@@ -216,7 +216,7 @@ describe("updateMenubyId", () => {
 
 describe("deleteMenu", () => {
 
-  // ✅ 1. Eliminación exitosa
+  //  Eliminación exitosa
   it("debe eliminar un menú correctamente", async () => {
 
     menuDao.deleteMenu.mockResolvedValue({ id: 1 });
@@ -237,7 +237,7 @@ describe("deleteMenu", () => {
     });
   });
 
-  // ❌ 2. Falta ID
+  //  Falta ID
   it("debe devolver 400 si falta id", async () => {
 
     const req = {
@@ -257,7 +257,7 @@ describe("deleteMenu", () => {
     });
   });
 
-  // ❌ 3. No existe
+  // . No existe
   it("debe devolver 404 si el menú no existe", async () => {
 
     menuDao.deleteMenu.mockResolvedValue(null);
@@ -279,7 +279,7 @@ describe("deleteMenu", () => {
     });
   });
 
-  // ❌ 4. Error interno
+  //  Error interno
   it("debe devolver 500 si ocurre un error", async () => {
 
     menuDao.deleteMenu.mockRejectedValue(new Error("DB error"));

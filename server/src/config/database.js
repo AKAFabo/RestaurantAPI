@@ -15,7 +15,10 @@ const connectDatabase = async () => {
 
   } catch (error) {
     console.error('Failed to connect to database:', error.message);
-    process.exit(1);
+    //  NO matar Jest
+    if (process.env.NODE_ENV !== "test") {
+      process.exit(1);
+    }
   }
 };
 
