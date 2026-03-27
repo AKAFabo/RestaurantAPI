@@ -37,7 +37,7 @@ describe("RESERVATIONS INTEGRATION", () => {
   beforeAll(async () => {
     await connectDatabase();
 
-    //  ROLE (único para evitar error duplicate)
+    //  ROLE 
     const roleRes = await pool.query(`
       INSERT INTO roles (name)
       VALUES ($1)
@@ -46,7 +46,7 @@ describe("RESERVATIONS INTEGRATION", () => {
 
     const roleId = roleRes.rows[0].id;
 
-    //  USER (email EXACTO al mock)
+    //  USER
     const userRes = await pool.query(`
       INSERT INTO users (name, email, password_hash, role_id)
       VALUES ('Test User', 'test@mail.com', 'hash', $1)
@@ -64,7 +64,7 @@ describe("RESERVATIONS INTEGRATION", () => {
 
     const restaurantId = restaurantRes.rows[0].id;
 
-    // TABLE (MUY IMPORTANTE para que no falle el DAO)
+    // TABLE 
     const tableRes = await pool.query(`
       INSERT INTO tables (restaurant_id, table_number, capacity)
       VALUES ($1, 1, 4)
@@ -90,13 +90,13 @@ describe("RESERVATIONS INTEGRATION", () => {
     it("debe crear una reserva correctamente", async () => {
       const res = await request(app)
         .post("/api/reservations")
-        .send({
+        .send({ // se envian los datos de prueba 
           table_id: global.testData.tableId,
           reservation_time: "2030-01-01 20:00:00",
           party_size: 2
         });
 
-      //  debug útil si falla
+      //  debug
       if (res.statusCode !== 201) {
         console.log("ERROR RESPONSE:", res.body);
       }
@@ -127,9 +127,7 @@ describe("RESERVATIONS INTEGRATION", () => {
 
   });
 
-  // ==========================
-  //  LIMPIEZA SEGURA
-  // ==========================
+  // se borran los datos de prueba 
   afterAll(async () => {
 
     if (global.testData.reservationId) {

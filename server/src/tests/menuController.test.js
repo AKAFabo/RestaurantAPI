@@ -127,7 +127,7 @@ describe("updateMenubyId", () => {
       menu: fakeMenu
     });
   });
-
+// provovar errores 
   //  Falta ID
   it("debe devolver 400 si falta id", async () => {
 
@@ -236,6 +236,8 @@ describe("deleteMenu", () => {
       message: "Menú eliminado correctamente"
     });
   });
+
+  // provocar los errores 
 
   //  Falta ID
   it("debe devolver 400 si falta id", async () => {

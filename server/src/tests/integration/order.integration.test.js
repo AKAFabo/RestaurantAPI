@@ -5,7 +5,8 @@ import connectDatabase from "../../config/database.js";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./src/.env" });
-jest.mock("../../keycloak/keycloak.js", () => {
+
+jest.mock("../../keycloak/keycloak.js", () => { // mock para simular el keycloak , si no ocupa el token real
   const session = require("express-session");
 
   return {
@@ -13,7 +14,7 @@ jest.mock("../../keycloak/keycloak.js", () => {
     keycloak: {
       protect: () => (req, res, next) => {
 
-        //  usar email dinámico guardado globalmente
+        //  usa email dinámico guardado globalmente
         const email = global.testData?.email || "fallback@test.com";
 
         req.kauth = {
@@ -40,12 +41,12 @@ jest.mock("../../keycloak/keycloak.js", () => {
 // ==========================
 
 function testPostOrder() {
-  describe("POST /orders", () => {
+  describe("POST /orders", () => { // endpoint que se prueba 
 
     it("debe crear un pedido correctamente", async () => {
       const res = await request(app)
         .post("/api/orders")
-        .send({
+        .send({ // se le envian los datos de prueba 
           restaurant_id: global.testData.restaurantId,
           items: [
             {
@@ -55,12 +56,12 @@ function testPostOrder() {
           ]
         });
 
-      expect(res.statusCode).toBe(201);
+      expect(res.statusCode).toBe(201); // codigo de exito 
       expect(res.body.message).toBe("Pedido creado");
       expect(res.body.order).toBeDefined();
     });
 
-    it("debe fallar si no hay items", async () => {
+    it("debe fallar si no hay items", async () => { // provoca el error 
       const res = await request(app)
         .post("/api/orders")
         .send({
@@ -68,28 +69,28 @@ function testPostOrder() {
           items: []
         });
 
-      expect(res.statusCode).toBe(400);
+      expect(res.statusCode).toBe(400); // codigo de error 
     });
 
   });
 }
 
 function testGetOrder() {
-  describe("GET /orders/:id", () => {
+  describe("GET /orders/:id", () => { // endpoint que se prueba 
 
     it("debe obtener un pedido correctamente", async () => {
       const res = await request(app)
-        .get(`/api/orders/${global.testData.orderId}`);
+        .get(`/api/orders/${global.testData.orderId}`); // se envia el id 
 
-      expect(res.statusCode).toBe(200);
+      expect(res.statusCode).toBe(200); // codigo de exito 
       expect(res.body.id).toBe(global.testData.orderId);
     });
 
     it("debe devolver 404 si no existe", async () => {
       const res = await request(app)
-        .get("/api/orders/99999");
+        .get("/api/orders/99999"); 
 
-      expect(res.statusCode).toBe(404);
+      expect(res.statusCode).toBe(404);// no existe el id 
     });
 
   });
@@ -174,6 +175,7 @@ describe("ORDERS INTEGRATION", () => {
   testGetOrder();
 
 afterAll(async () => {
+  // borrar los datos que se insertaron en la prueba 
 
   //  BORRAR TODOS LOS ORDER_ITEMS del producto creado
   await pool.query(`
@@ -187,7 +189,7 @@ afterAll(async () => {
     WHERE user_id = $1
   `, [global.testData.userId]);
 
-  //  AHORA SÍ puedes borrar sin problema
+  
   await pool.query(`
     DELETE FROM products WHERE id = $1
   `, [global.testData.productId]);

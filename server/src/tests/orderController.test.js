@@ -1,6 +1,5 @@
 import { createOrder } from "../controllers/orderController.js";
 import { getOrderById } from "../controllers/orderController.js";
-
 import * as orderDAO from "../daos/orderDao.js";
 import * as userDAO from "../daos/reservationDao.js";
 
@@ -55,6 +54,8 @@ describe("createOrder", () => {
       order: fakeOrder
     });
   });
+
+  // provocar los erores 
 
   // Faltan datos
   it("debe devolver 400 si faltan datos", async () => {
@@ -239,7 +240,7 @@ describe("getOrderById", () => {
 
     expect(res.json).toHaveBeenCalledWith(fakeOrder);
   });
-
+  // errores 
   //  Falta ID
   it("debe devolver 400 si falta id", async () => {
 
