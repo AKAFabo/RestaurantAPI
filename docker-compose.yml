@@ -9,8 +9,8 @@ services:
     shm_size: 128mb
 
     environment:
-      POSTGRES_USER: faboherrera
-      POSTGRES_PASSWORD: faboherrera
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_DB: ${PG_DB}
     ports:
     - "${PG_PORT}:5432"
@@ -37,13 +37,13 @@ services:
       - "3001:3001"
     environment:
       PG_HOST: postgres_db
-      PG_USER: faboherrera
-      PG_PASSWORD: faboherrera
-      PG_DB: RestauranteBD2
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
     depends_on:
       - db
 
-      
+
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     container_name: keycloak
