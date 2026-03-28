@@ -1,7 +1,10 @@
 import axios from "axios";
+import dotenv from "dotenv";
 
-const KEYCLOAK_URL = "http://localhost:8080";
-const REALM = "restaurant-realm";
+dotenv.config();
+
+const KEYCLOAK_URL = process.env.KEYCLOAK_URL || "http://keycloak:8080";
+const REALM = process.env.KEYCLOAK_REALM || "restaurant-realm";
 
 async function getAdminToken() {
   const response = await axios.post(
@@ -85,6 +88,54 @@ async function assignRoleToUser(userId, role, token) {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
+      },
+    }
+  );
+}
+
+export async function updateKeycloakUser(currentEmail, { email, name, password }) {
+  const adminToken = await getAdminToken();
+  const userId = await getUserIdByEmail(currentEmail, adminToken);
+
+  if (!userId) throw new Error('User not found in Keycloak');
+
+  await axios.put(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}`,
+    { 
+      firstName: name,
+      email: email //Actualizar usuario
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  await axios.put(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/reset-password`,
+    { type: 'password', value: password, temporary: false },
+    {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+}
+
+export async function deleteKeycloakUser(email) {
+  const adminToken = await getAdminToken();
+  const userId = await getUserIdByEmail(email, adminToken);
+  
+  if (!userId) throw new Error('User not found in Keycloak');
+
+  await axios.delete(
+    `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
       },
     }
   );

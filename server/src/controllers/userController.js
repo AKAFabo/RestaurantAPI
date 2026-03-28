@@ -1,8 +1,11 @@
 import axios from 'axios';
 import userDAO from '../daos/userDao.js';
 import dotenv from 'dotenv';
+import { updateKeycloakUser } from '../services/keycloakService.js';
+import { deleteKeycloakUser } from '../services/keycloakService.js';
 
 dotenv.config();
+const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'http://keycloak:8080';
 
 
 const userController = {
@@ -42,7 +45,7 @@ const userController = {
             }
 
             const response = await axios.post(
-                `http://localhost:8080/realms/restaurant-realm/protocol/openid-connect/token`,
+                `${KEYCLOAK_URL}/realms/restaurant-realm/protocol/openid-connect/token`,
                 new URLSearchParams({
                     client_id: 'restaurant-api',
                     client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
@@ -85,6 +88,48 @@ const userController = {
         } catch (error) {
             console.error('Error fetching user info:', error);
             res.status(500).json({ error: 'Error fetching user info' });
+        }
+    },
+
+    async updateUser(req, res) {
+        try {
+            const { id } = req.params;
+            const { email, name, password } = req.body;
+
+            if (!email || !name || !password) {
+                return res.status(400).json({ error: 'Email, name and password are required' });
+            }
+
+            // Obtener el email actual del usuario desde PostgreSQL
+            const currentUser = await userDAO.getUserById(id);
+            if (!currentUser) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            // Buscar en Keycloak con el email actual, actualizar con los nuevos datos
+            await updateKeycloakUser(currentUser.email, { email, name, password });
+            const updatedUser = await userDAO.updateUser(id, { email, name, password });
+
+            res.json(updatedUser);
+        } catch (error) {
+            console.error('Error updating user:', error);
+            res.status(500).json({ error: 'Error updating user' });
+        }
+    },
+
+    async deleteUser(req, res) {
+        try {
+            const { id } = req.params;
+            const user = await userDAO.getUserById(id);
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            await deleteKeycloakUser(user.email); // Eliminar usuario de Keycloak
+            await userDAO.deleteUser(id);
+            res.status(204).send();
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            res.status(500).json({ error: error.response?.data || error.message });
         }
     }
 };

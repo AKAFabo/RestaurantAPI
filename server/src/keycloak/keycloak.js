@@ -8,7 +8,7 @@ const keycloak = new Keycloak(
   { store: memoryStore },
   {
     realm: "restaurant-realm",
-    "auth-server-url": "http://localhost:8080",
+    "auth-server-url": process.env.KEYCLOAK_URL,
     "ssl-required": "external",
     resource: "restaurant-api",
     "bearer-only": true,

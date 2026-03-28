@@ -20,7 +20,7 @@ const config = {
   },
 
   keycloak: {
-    url: process.env.KEYCLOACK_URL || 'http://localhost:8080',
+    url: process.env.KEYCLOAK_URL || 'http://keycloak:8080',
     realm: process.env.KEYCLOAK_REALM || 'restaurant-realm',
     clientId: process.env.KEYCLOAK_CLIENT_ID || 'restaurant-api',
     clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,

@@ -9,10 +9,12 @@ import {deletereservation } from  "../controllers/reservascontroller.js"
 import { createOrder } from "../controllers/orderController.js";
 import { getOrderById } from "../controllers/orderController.js";
 import userRoutes from './userRoutes.js';
+import restaurantRoutes from './restaurantRoutes.js';
 const router = express.Router();
 
 router.use('/health', healthRouter);
 router.use('/auth', userRoutes);
+router.use('/restaurants', restaurantRoutes);
 
 
 // permisos de keycloak

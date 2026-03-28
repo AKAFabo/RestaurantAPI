@@ -4,6 +4,11 @@ import crypto from "crypto";
 
 const userDAO = {
 
+    async getUserById(id) {
+        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        return result.rows[0];
+    },
+
     async getUsers() {
         try {
 
@@ -41,6 +46,29 @@ const userDAO = {
             return result.rows[0];
         } catch (error) {
             console.error('Error fetching user by email:', error);
+            throw error;
+        }
+    },
+
+    async updateUser(id, { email, name, password }) {
+        try {
+            const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+            const result = await pool.query(
+                'UPDATE users SET email = $1, name = $2, password_hash = $3 WHERE id = $4 RETURNING *',
+                [email, name, hashedPassword, id]
+            );
+            return result.rows[0];
+        } catch (error) {
+            console.error('Error updating user:', error);
+            throw error;
+        }  
+    },
+
+    async deleteUser(id) {
+        try {
+            await pool.query('DELETE FROM users WHERE id = $1', [id]);
+        } catch (error) {
+            console.error('Error deleting user:', error);
             throw error;
         }
     }

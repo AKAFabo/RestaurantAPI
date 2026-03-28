@@ -49,11 +49,17 @@ services:
     container_name: keycloak
     command: start-dev
     restart: always
-
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin123
+      
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres_db:5432/${PG_DB}
+      KC_DB_USERNAME: ${PG_USER}
+      KC_DB_PASSWORD: ${PG_PASSWORD}
     ports:
       - "8080:8080"
+    depends_on:
+      - db
 volumes:
   postgres_data:
