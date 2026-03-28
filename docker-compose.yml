@@ -44,6 +44,22 @@ services:
       - db
 
 
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      PG_HOST: postgres_db
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_DB: ${PG_DB}
+      NODE_ENV: test
+    depends_on:
+      - db
+    command: npm test -- --coverage
+    profiles:
+      - test
+
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     container_name: keycloak
