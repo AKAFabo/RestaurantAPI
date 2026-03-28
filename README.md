@@ -1,5 +1,8 @@
 #  Reserva Inteligente de Restaurantes API
-
+# Integrantes
+- Catherin Madriz
+- Fabricio Herrera 
+- 
 ##  Descripción del Proyecto
 API REST desarrollada  para la gestión de reservas en restaurantes. Permite manejar usuarios, autenticación, menús, reservas y pedidos.
 
