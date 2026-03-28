@@ -59,9 +59,9 @@ La autenticación se delega a Keycloak, el cual actúa como proveedor de identid
 
 Keycloak genera un token JWT (JSON Web Token) que contiene información del usuario, como:
 
--Identidad del usuario (id, username)
--Roles y permisos
--Tiempo de expiración
+- Identidad del usuario (id, username)
+- Roles y permisos
+- Tiempo de expiración
 
 Este token es firmado digitalmente para garantizar su integridad.
 
