@@ -2,11 +2,13 @@
 # Integrantes
 - Catherin Madriz
 - Fabricio Herrera 
-- 
+
 ##  Descripción del Proyecto
 API REST desarrollada  para la gestión de reservas en restaurantes. Permite manejar usuarios, autenticación, menús, reservas y pedidos.
 
 Incluye autenticación basada en JWT mediante Keycloak, contenedorización con Docker y pruebas unitarias e integración.
+
+Link de la video demostrando su uso: [text](https://youtu.be/zRaEEgarBpo)
 
 ---
 
@@ -26,6 +28,7 @@ La aplicación sigue una arquitectura en capas:
 
 - **Routes** → Definición de endpoints
 - **Controllers** → Lógica de negocio
+- **Daos** → Comunicación con la base de datos
 - **Database** → Conexión a PostgreSQL
 - **Middleware** → Autenticación con Keycloak
 
