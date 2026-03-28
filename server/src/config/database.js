@@ -6,6 +6,7 @@ const { Pool } = pkg;
 let pool = null;
 
 const connectDatabase = async () => {
+
   try {
     pool = new Pool(config.postgres);
 
