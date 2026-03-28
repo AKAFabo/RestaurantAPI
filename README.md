@@ -8,7 +8,7 @@ API REST desarrollada  para la gestión de reservas en restaurantes. Permite man
 
 Incluye autenticación basada en JWT mediante Keycloak, contenedorización con Docker y pruebas unitarias e integración.
 
-Link de la video demostrando su uso: [text](https://youtu.be/zRaEEgarBpo)
+Link de la video demostrando su uso: [Link](https://youtu.be/zRaEEgarBpo)
 
 ---
 
