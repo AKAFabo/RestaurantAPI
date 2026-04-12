@@ -1,3 +1,4 @@
+import connectMongo from './mongo.js';
 import pkg from 'pg';
 import config from './environment.js';
 
@@ -5,27 +6,40 @@ const { Pool } = pkg;
 
 let pool = null;
 
-const connectDatabase = async () => {
-
+const connectPostgres = async () => {
   try {
     pool = new Pool(config.postgres);
 
     await pool.query('SELECT 1');
 
     console.log('Database connected successfully (PostgreSQL)');
-
   } catch (error) {
-    console.error('Failed to connect to database:', error.message);
-    //  NO matar Jest
+    console.error('Failed to connect to PostgreSQL:', error.message);
+
     if (process.env.NODE_ENV !== "test") {
       process.exit(1);
     }
   }
 };
 
-export const getDatabaseStatus = () => {
-  if (!pool) return 'disconnected';
+const connectDatabase = async () => {
+  const dbType = process.env.DB;
 
+  if (dbType === "mongo") {
+    console.log("Usando MongoDB...");
+    await connectMongo();   // mongo 
+  } else {
+    console.log("Usando PostgreSQL...");
+    await connectPostgres();
+  }
+};
+
+export const getDatabaseStatus = () => {
+  if (process.env.DB === "mongo") {
+    return 'connected'; 
+  }
+
+  if (!pool) return 'disconnected';
   return pool.totalCount >= 0 ? 'connected' : 'disconnected';
 };
 
