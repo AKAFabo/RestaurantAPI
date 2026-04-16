@@ -1,4 +1,4 @@
-import * as menuDao from "../daos/menuDao.js" ;
+import { menuService } from "../services/config.js";
 export const getMenuById = async (req,res) =>{
     try{
 
@@ -11,7 +11,7 @@ export const getMenuById = async (req,res) =>{
 
 
 
-    const menu = await menuDao.getMenuById(id); // obtener informacion del menu
+    const menu = await menuService.getMenuById(id); // obtener informacion del menu
 
     if (!menu){
         return res.status(404).json({error:"Menu no encontrado"});
@@ -47,7 +47,7 @@ export const updateMenubyId = async (req,res) =>{
 
 
 
-    const menu = await menuDao.updateMenubyId(id,name); // hacer la actualizacionn
+    const menu = await menuService.updateMenuById(id, name); // hacer la actualizacionn
 
     if (!menu){ // errores posibles 
         return res.status(404).json({error:"Menu no encontrado"});
@@ -77,7 +77,7 @@ export const deleteMenu = async (req, res) => {
       });
     }
 
-    const menu = await menuDao.deleteMenu(id); // elimina el menu y devuelve
+    const menu = await menuService.deleteMenu(id); // elimina el menu y devuelve
 
     if (!menu) { // en caso de que no se encuentre el menu que se queria eliminar 
       return res.status(404).json({

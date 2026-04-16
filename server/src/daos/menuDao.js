@@ -1,78 +1,74 @@
+import MenuDAO from "./menu.dao.abstract.js";
 import { pool } from "../config/database.js";
 
+class PostgresMenuDAO extends MenuDAO {
 
-export const getMenuById = async (id) => {
+  async getMenuById(id) {
 
-  //  Obtener datos  del men2
-  const menuQuery = `
-    SELECT id, restaurant_id, name, created_at
-    FROM menus
-    WHERE id = $1
-  `;
+    const menuQuery = `
+      SELECT id, restaurant_id, name, created_at
+      FROM menus
+      WHERE id = $1
+    `;
 
-  const menuResult = await pool.query(menuQuery, [id]);
+    const menuResult = await pool.query(menuQuery, [id]);
 
-  //  No existe
-  if (menuResult.rows.length === 0) {
-    return null;
+    if (menuResult.rows.length === 0) {
+      return null;
+    }
+
+    const menu = menuResult.rows[0];
+
+    const productsQuery = `
+      SELECT id, name, description, price, available
+      FROM products
+      WHERE menu_id = $1
+    `;
+
+    const productsResult = await pool.query(productsQuery, [id]);
+
+    menu.products = productsResult.rows;
+
+    return menu;
   }
 
-  const menu = menuResult.rows[0];
+  async updateMenuById(id, name) {
 
-  // Obtener productos del menu 
-  const productsQuery = `
-    SELECT id, name, description, price, available
-    FROM products
-    WHERE menu_id = $1
-  `;
-
-  const productsResult = await pool.query(productsQuery, [id]);
-
-  //  Agregar productos al menu
-  menu.products = productsResult.rows;
-
-  return menu;
-};
-
-
-
-export const updateMenubyId = async(id,name)=>{
     const query = `
-    UPDATE menus
-    SET name = $1
-    WHERE id = $2
-    RETURNING id, restaurant_id, name, created_at
-  `;
+      UPDATE menus
+      SET name = $1
+      WHERE id = $2
+      RETURNING id, restaurant_id, name, created_at
+    `;
 
+    const values = [name, id];
+    const result = await pool.query(query, values);
 
-    const values = [name,id] // los obtiene de la base 
-    const result = await pool.query(query,values)
-
-    if (result.rows.length===0){
+    if (result.rows.length === 0) {
       return null;
     }
 
     return result.rows[0];
+  }
+
+  async deleteMenu(id) {
+
+    await pool.query(`
+      DELETE FROM order_items
+      WHERE product_id IN (
+        SELECT id FROM products WHERE menu_id = $1
+      )
+    `, [id]);
+
+    const result = await pool.query(`
+      DELETE FROM menus
+      WHERE id = $1
+      RETURNING *
+    `, [id]);
+
+    return result.rows[0] || null;
+  }
+
 }
 
-
-
-export const deleteMenu = async (id) => {
-
-  // borrar order_items relacionados
-  await pool.query(`
-    DELETE FROM order_items
-    WHERE product_id IN (
-      SELECT id FROM products WHERE menu_id = $1
-    )
-  `, [id]);
-
-  //  borrar menu esto borrar products en cascade
-  const result = await pool.query(`
-    DELETE FROM menus
-    WHERE id = $1
-    RETURNING *
-  `, [id]);
-
-  return result.rows[0] || null;
-};
+export default new PostgresMenuDAO();

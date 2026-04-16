@@ -5,7 +5,7 @@ import{getMenuById} from "../controllers/menuController.js"
 import {updateMenubyId } from  "../controllers/menuController.js"
 import {deleteMenu } from  "../controllers/menuController.js"
 import {createReservation } from  "../controllers/reservascontroller.js"
-import {deletereservation } from  "../controllers/reservascontroller.js"
+import {deleteReservation } from  "../controllers/reservascontroller.js"
 import { createOrder } from "../controllers/orderController.js";
 import { getOrderById } from "../controllers/orderController.js";
 import userRoutes from './userRoutes.js';
@@ -163,7 +163,7 @@ router.post("/reservations", keycloak.protect("realm:client"), createReservation
  *       403:
  *         description: No autorizado
  */
-router.delete("/reservations/:id", keycloak.protect("realm:client"), deletereservation);
+router.delete("/reservations/:id", keycloak.protect("realm:client"), deleteReservation);
 
 
 

@@ -1,15 +1,16 @@
-import * as reservationDAO from "../daos/reservationDao.js";
+
+import { reservationService } from "../services/config.js";
+
 
 
 export const createReservation = async (req, res) => {
   try {
 
-    const { table_id, reservation_time, party_size } = req.body; // parametros requeridos 
+    const { table_id, reservation_time, party_size } = req.body;
 
-    const user = req.kauth?.grant?.access_token?.content; // user del key 
-    const email = user?.email; // usuario del key 
+    const user = req.kauth?.grant?.access_token?.content;
+    const email = user?.email;
 
-    // validaciones
     if (!table_id || !reservation_time || !party_size) {
       return res.status(400).json({
         error: "table_id, reservation_time y party_size son requeridos"
@@ -22,21 +23,19 @@ export const createReservation = async (req, res) => {
       });
     }
 
-   
-    const dbUser = await reservationDAO.getByEmail(email); // obtengo el user id de la base por medio del email
+    const { error, reservation } =
+      await reservationService.createReservation({
+        email,
+        table_id,
+        reservation_time,
+        party_size
+      });
 
-    if (!dbUser) {
+    if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"
       });
     }
-
-    const reservation = await reservationDAO.createReservation({// crea la reservacion 
-      user_id: dbUser.id, 
-      table_id,
-      reservation_time,
-      party_size
-    });
 
     res.status(201).json({
       message: "Reserva creada",
@@ -51,15 +50,14 @@ export const createReservation = async (req, res) => {
     });
   }
 };
-
-export const deletereservation = async (req,res) =>{
+export const deleteReservation = async (req, res) => {
   try {
 
     const { id } = req.params;
 
-    const user = req.kauth?.grant?.access_token?.content; // key id del usuario 
-    const email = user?.email;// email del key del user 
-    // validaciones 
+    const user = req.kauth?.grant?.access_token?.content;
+    const email = user?.email;
+
     if (!id) {
       return res.status(400).json({
         error: "ID requerido"
@@ -72,17 +70,14 @@ export const deletereservation = async (req,res) =>{
       });
     }
 
-   
-    const dbUser = await reservationDAO.getByEmail(email); // obtiene el id de la db 
+    const { error, result } =
+      await reservationService.deleteReservation({ id, email });
 
-    if (!dbUser) {
+    if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"
       });
     }
-
-    
-    const result = await reservationDAO.deletereservation(id, dbUser.id); // elimina la reserva 
 
     if (result === "NOT_FOUND") {
       return res.status(404).json({

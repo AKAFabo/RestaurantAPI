@@ -23,7 +23,7 @@ const connectPostgres = async () => {
 };
 
 const connectDatabase = async () => {
-  const dbType = process.env.DB;
+  const dbType = config.database.type;
 
   if (dbType === "mongo") {
     console.log("Usando MongoDB...");

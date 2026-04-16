@@ -4,11 +4,17 @@ const reservationSchema = new mongoose.Schema({
 
     user_id: {
         type:mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required:true
+    },
+    restaurant_id:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: "Restaurant",
         required:true
     },
 
     table_id: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     reservation_time: {
@@ -17,8 +23,13 @@ const reservationSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        default:"Active"
+        default:"CONFIRMED",
+        enum:["CONFIRMED","CANCELLED"]
     },
-},{ timestamps: { createdAt: 'created_at' } });
+    created_at:{
+        type:Date,
+        required:true
+    }
+} );
 
 export default mongoose.model("Reservation",reservationSchema);

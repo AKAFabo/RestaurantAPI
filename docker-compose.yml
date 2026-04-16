@@ -38,6 +38,10 @@ services:
       PG_DB: ${PG_DB}
     depends_on:
       - db
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: npm run dev
 
   test:
     build:

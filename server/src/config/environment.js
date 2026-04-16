@@ -24,7 +24,15 @@ const config = {
     realm: process.env.KEYCLOAK_REALM || 'restaurant-realm',
     clientId: process.env.KEYCLOAK_CLIENT_ID || 'restaurant-api',
     clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+  },
+  database: {
+  type: process.env.DB || "postgres"
+},
+
+  mongo: {
+    uri: process.env.MONGO_URI
   }
+  
 
 
 };
