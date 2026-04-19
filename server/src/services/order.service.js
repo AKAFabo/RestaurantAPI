@@ -1,13 +1,13 @@
 class OrderService {
-  constructor(orderDAO, userDAO) {
-    this.orderDAO = orderDAO;
-    this.userDAO = userDAO;
-  }
+  constructor(orderDAO, reservationDAO) {
+  this.orderDAO = orderDAO;
+  this.reservationDAO = reservationDAO; // hay que cambiar este al de user 
+}
 
   async createOrder({ email, restaurant_id, reservation_id, items }) {
 
     // buscar usuario
-    const dbUser = await this.userDAO.getByEmail(email);
+    const dbUser = await this.reservationDAO.getByEmail(email);  // cambiar 
 
     if (!dbUser) {
       return { error: "USER_NOT_FOUND" };
@@ -26,7 +26,7 @@ class OrderService {
 
   async getOrderById({ id, email, roles }) {
 
-    const dbUser = await this.userDAO.getByEmail(email);
+    const dbUser = await this.reservationDAO.getByEmail(email); /// cambiar 
 
     if (!dbUser) {
       return { error: "USER_NOT_FOUND" };
@@ -39,7 +39,10 @@ class OrderService {
     }
 
     // permisos
-    if (!roles.includes("admin") && order.user_id !== dbUser.id) {
+    if (
+      !roles.includes("admin") &&
+      order.user_id.toString() !== (dbUser._id || dbUser.id).toString()
+    ) {
       return { error: "FORBIDDEN" };
     }
 

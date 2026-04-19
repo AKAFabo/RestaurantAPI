@@ -7,10 +7,10 @@ const memoryStore = new session.MemoryStore();
 const keycloak = new Keycloak(
   { store: memoryStore },
   {
-    realm: "restaurant-realm",
+    realm: process.env.KEYCLOAK_REALM,
     "auth-server-url": process.env.KEYCLOAK_URL,
-    "ssl-required": "external",
-    resource: "restaurant-api",
+    "ssl-required": "none",
+    resource: process.env.KEYCLOAK_CLIENT_ID,
     "bearer-only": true,
     credentials: {
       secret: process.env.KEYCLOAK_CLIENT_SECRET,

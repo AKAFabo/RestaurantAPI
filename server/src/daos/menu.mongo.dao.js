@@ -20,10 +20,11 @@ class MongoMenuDAO extends MenuDAO{
 
 
     // udpdate del menu 
-    updateMenubyId = async (id,name) =>{
+    updateMenuById = async (id,name) =>{
+        const objectId = new mongoose.Types.ObjectId(id);
 
         const updateMenu= await Menu.findByIdAndUpdate(
-            id,{name},{new:true} // devuelve el menu actualizado
+            objectId,{name},{new:true} // devuelve el menu actualizado
         ).lean();
         if(!updateMenu){
             return null;

@@ -25,7 +25,7 @@ const options = {
       },
     },
   },
-  apis: ["./routes/*.js"], // en donde se obtienen los endpoints 
+  apis: ["./src/routes/*.js"], // en donde se obtienen los endpoints 
 };
 
 const swaggerSpec = swaggerJsdoc(options);

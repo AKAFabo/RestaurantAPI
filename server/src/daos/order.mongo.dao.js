@@ -7,7 +7,9 @@ class MongoorderDAO extends OrderDAO {
 
     getById = async (id) => {
 
-        const order = await Order.findById(id).lean();
+        const ObjectId = new mongoose.Types.ObjectId(id);
+
+        const order = await Order.findById(ObjectId).lean();
 
         if (!order) {
             return null;
@@ -19,6 +21,13 @@ class MongoorderDAO extends OrderDAO {
 
 
     create = async ({ user_id, restaurant_id, reservation_id, items }) => {
+        const userObjectId = new mongoose.Types.ObjectId(user_id);
+        const restaurantObjectId = new mongoose.Types.ObjectId(restaurant_id);
+        
+
+         const reservationObjectId = reservation_id
+          ? new mongoose.Types.ObjectId(reservation_id)
+          : null;
 
         let total = 0;
 
@@ -35,10 +44,11 @@ class MongoorderDAO extends OrderDAO {
             throw new Error(`Cantidad inválida para producto ${item.product_id}`);
             }
 
-            //  buscar producto dentro de menus
+            const productObjectId = new mongoose.Types.ObjectId(item.product_id);
+
             const menu = await Menu.findOne({
-            restaurant_id,
-            "products._id": item.product_id
+                restaurant_id: restaurantObjectId,
+                "products._id": productObjectId
             });
 
             if (!menu) {
@@ -65,13 +75,13 @@ class MongoorderDAO extends OrderDAO {
 
         //  crear orden (con items embebidos)
         const order = await Order.create({
-            user_id,
-            restaurant_id,
-            reservation_id: reservation_id || null,
-            status: "PENDING",
-            total,
-            items: processedItems
-        });
+        user_id: userObjectId,
+        restaurant_id: restaurantObjectId,
+        reservation_id: reservationObjectId || null,
+        status: "PENDING",
+        total,
+        items: processedItems
+            });
 
         return order;
         };

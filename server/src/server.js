@@ -32,6 +32,7 @@ const startServer = async () => {
     const server = app.listen(config.server.port, () => {
       console.log(`Server running on port ${config.server.port} in ${config.server.nodeEnv} mode`);
       console.log(`Health check: http://localhost:${config.server.port}/api/health`);
+     // console.log("ENV SECRET:", process.env.KEYCLOAK_CLIENT_SECRET);
     });
 
     const gracefulShutdown = () => {

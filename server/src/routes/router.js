@@ -200,7 +200,7 @@ router.delete("/reservations/:id", keycloak.protect("realm:client"), deleteReser
  *       201:
  *         description: Pedido creado
  */
-router.post("/orders", keycloak.protect("realm:client"), createOrder);
+router.post("/orders", keycloak.protect(), createOrder);
 
 
 /**

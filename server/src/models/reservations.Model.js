@@ -25,11 +25,7 @@ const reservationSchema = new mongoose.Schema({
         type:String,
         default:"CONFIRMED",
         enum:["CONFIRMED","CANCELLED"]
-    },
-    created_at:{
-        type:Date,
-        required:true
     }
-} );
+} ,{ timestamps: { createdAt: 'created_at' }});
 
 export default mongoose.model("Reservation",reservationSchema);

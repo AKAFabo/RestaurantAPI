@@ -2,6 +2,7 @@ import Reservation from "../models/reservations.Model.js";
 import Restaurant from "../models/restaurant.model.js";
 import User from "../models/user.Model.js";  
 import ReservationDAO from "./reservation.dao.abstract.js";
+import mongoose from "mongoose";
 
 
 class MongoReservationDAO extends ReservationDAO {
@@ -11,20 +12,25 @@ class MongoReservationDAO extends ReservationDAO {
     return user || null;
   }
 
+  
+
   async createReservation({ user_id, table_id, reservation_time }) {
+
+    const tableObjectId = new mongoose.Types.ObjectId(table_id);
+    const userObjectId = new mongoose.Types.ObjectId(user_id);
 
     // buscar restaurant que tenga esa mesa
     const restaurant = await Restaurant.findOne({
-      "tables._id": table_id
+      "tables._id": tableObjectId
     });
 
     if (!restaurant) {
       throw new Error("Mesa no existe");
     }
 
-    //  verificar disponibilidad
+    // verificar disponibilidad
     const existing = await Reservation.findOne({
-      table_id,
+      table_id: tableObjectId,
       reservation_time,
       status: "CONFIRMED"
     });
@@ -33,22 +39,25 @@ class MongoReservationDAO extends ReservationDAO {
       throw new Error("Mesa no disponible en ese horario");
     }
 
-    //  crear reserva
+    // crear reserva
     const reservation = await Reservation.create({
-      user_id,
+      user_id: userObjectId,
       restaurant_id: restaurant._id,
-      table_id,
+      table_id: tableObjectId,
       reservation_time,
       status: "CONFIRMED"
     });
 
     return reservation;
-  }
+}
 
   async deleteReservation(reservation_id, user_id) {
 
-    const reserva = await Reservation.findById(reservation_id);
-
+    const reservationObjectId = new mongoose.Types.ObjectId(reservation_id);
+    
+    
+    const reserva = await Reservation.findById(reservationObjectId);
+    
     if (!reserva) {
       return "NOT_FOUND";
     }
