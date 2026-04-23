@@ -97,3 +97,21 @@ export const deleteMenu = async (req, res) => {
     });
   }
 };
+
+
+
+export const getAllProducts = async (req, res) => {
+  try {
+
+    const products = await menuService.getAllProducts();
+
+    res.json(products);
+
+  } catch (error) {
+    console.error("Error obteniendo productos:", error);
+
+    res.status(500).json({
+      error: "Error obteniendo productos"
+    });
+  }
+};

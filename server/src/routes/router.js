@@ -2,6 +2,7 @@ import express from 'express';
 import healthRouter from './health.js';
 import { keycloak } from "../keycloak/keycloak.js";
 import{getMenuById} from "../controllers/menuController.js"
+import{getAllProducts} from "../controllers/menuController.js"
 import {updateMenubyId } from  "../controllers/menuController.js"
 import {deleteMenu } from  "../controllers/menuController.js"
 import {createReservation } from  "../controllers/reservascontroller.js"
@@ -222,4 +223,7 @@ router.post("/orders", keycloak.protect(), createOrder);
  *         description: No autorizado
  */
 router.get("/orders/:id", keycloak.protect(), getOrderById);
+
+
+router.get("/products", getAllProducts); 
 export default router;

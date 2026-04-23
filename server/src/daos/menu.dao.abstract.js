@@ -11,6 +11,9 @@ class MenuDAO {
   async deleteMenu(id) {
     throw new Error("Method deleteMenu not implemented");
   }
+  async getAllProducts() {
+    throw new Error("Method not implemented");
+  }
 
 }
 

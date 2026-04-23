@@ -69,6 +69,22 @@ class PostgresMenuDAO extends MenuDAO {
     return result.rows[0] || null;
   }
 
+  getAllProducts = async () => {
+    const query = `
+      SELECT 
+        id,
+        name,
+        description,
+        category,
+        price
+      FROM products
+    `;
+
+    const result = await pool.query(query);
+
+    return result.rows;
+  };
+
 }
 
 export default new PostgresMenuDAO();

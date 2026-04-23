@@ -42,5 +42,32 @@ class MongoMenuDAO extends MenuDAO{
         return deletedMenu || null;
     };
 
+    async getAllProducts() {
+
+    // traer todos los menus
+    const menus = await Menu.find().lean();
+
+    let products = [];
+
+    for (const menu of menus) {
+
+      if (!menu.products) continue;
+
+      for (const product of menu.products) {
+
+        products.push({
+          id: product._id,
+          name: product.name,
+          description: product.description || "Producto sin descripción",
+          category: product.category,
+          price: product.price
+        });
+
+      }
+    }
+
+    return products;
+  }
+
 }
 export default new MongoMenuDAO();

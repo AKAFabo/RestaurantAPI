@@ -14,6 +14,9 @@ class MenuService {
   async deleteMenu(id) {
     return await this.menuDAO.deleteMenu(id);
   }
+  async getAllProducts() {
+    return await this.menuDAO.getAllProducts();
+  }
 }
 
 export default MenuService;
