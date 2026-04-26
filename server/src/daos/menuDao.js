@@ -20,7 +20,7 @@ class PostgresMenuDAO extends MenuDAO {
     const menu = menuResult.rows[0];
 
     const productsQuery = `
-      SELECT id, name, description, price, available
+      SELECT id, name, description, price, available,category
       FROM products
       WHERE menu_id = $1
     `;

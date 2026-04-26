@@ -27,8 +27,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      
+      context: ./server
     ports:
       - "3001:3001"
     environment:
@@ -45,8 +45,8 @@ services:
 
   test:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./server
+      
     environment:
       PG_HOST: postgres_db
       PG_USER: ${PG_USER}
@@ -88,6 +88,27 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_DB}
     volumes:
       - mongo_data:/data/db
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
+    container_name: elasticsearch
+    environment:
+      discovery.type: ${ELASTIC_DISCOVERY}
+      xpack.security.enabled: ${ELASTIC_SECURITY}
+    ports:
+      - "${ELASTIC_PORT}:9200"
+
+  search-service:
+    build:
+      context: ./search-service
+    ports:
+      - "${SEARCH_PORT}:4000"
+    environment:
+      ELASTIC_URL: ${ELASTIC_URL}
+      API_URL: ${API_URL}
+    depends_on:
+      - elasticsearch
+      - api
 
 volumes:
   postgres_data:
