@@ -11,7 +11,7 @@ class ReservationService {
     if (!dbUser) {
       return { error: "USER_NOT_FOUND" };
     }
-
+    // hace la llamada al dao para crear la reservacion
     const reservation = await this.reservationDAO.createReservation({
       user_id: dbUser.id,
       table_id,
@@ -25,7 +25,7 @@ class ReservationService {
 
   async deleteReservation({ id, email }) {
 
-    const dbUser = await this.reservationDAO.getByEmail(email);
+    const dbUser = await this.reservationDAO.getByEmail(email); // verifica si existe el usuario
 
     if (!dbUser) {
       return { error: "USER_NOT_FOUND" };

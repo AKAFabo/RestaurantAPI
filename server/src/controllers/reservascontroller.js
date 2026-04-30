@@ -6,11 +6,12 @@ import { reservationService } from "../services/config.js";
 export const createReservation = async (req, res) => {
   try {
 
-    const { table_id, reservation_time, party_size } = req.body;
-
+    const { table_id, reservation_time, party_size } = req.body; // obtiene los parametros del body 
+    // obtiene los datos de keycloak del usuario que se autentico
     const user = req.kauth?.grant?.access_token?.content;
     const email = user?.email;
 
+    // revisa que vengan los datos 
     if (!table_id || !reservation_time || !party_size) {
       return res.status(400).json({
         error: "table_id, reservation_time y party_size son requeridos"
@@ -23,14 +24,14 @@ export const createReservation = async (req, res) => {
       });
     }
 
-    const { error, reservation } =
+    const { error, reservation } = // llama al service con los datos 
       await reservationService.createReservation({
         email,
         table_id,
         reservation_time,
         party_size
       });
-
+      // verifica si devolvio un error
     if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"
@@ -53,11 +54,11 @@ export const createReservation = async (req, res) => {
 export const deleteReservation = async (req, res) => {
   try {
 
-    const { id } = req.params;
-
+    const { id } = req.params; // obtiene id del parametro 
+    // obtiene informacion del usuario autenticado 
     const user = req.kauth?.grant?.access_token?.content;
     const email = user?.email;
-
+    // valida que vengan los datos 
     if (!id) {
       return res.status(400).json({
         error: "ID requerido"
@@ -70,9 +71,9 @@ export const deleteReservation = async (req, res) => {
       });
     }
 
-    const { error, result } =
+    const { error, result } = // llama al service con los datos
       await reservationService.deleteReservation({ id, email });
-
+    // busca errores
     if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"

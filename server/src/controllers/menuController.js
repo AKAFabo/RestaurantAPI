@@ -1,4 +1,5 @@
 import { menuService } from "../services/config.js";
+
 export const getMenuById = async (req,res) =>{
     try{
 
@@ -100,10 +101,10 @@ export const deleteMenu = async (req, res) => {
 
 
 
-export const getAllProducts = async (req, res) => {
+export const getAllProducts = async (req, res) => { // para el elastic search que necesita todos los productos 
   try {
 
-    const products = await menuService.getAllProducts();
+    const products = await menuService.getAllProducts(); // llama al service para obtener los productos 
 
     res.json(products);
 

@@ -12,7 +12,7 @@ import orderMongoDAO from "./order.mongo.dao.js";
 
 const dbType = config.database.type;
 
-//  ÚNICO punto donde decides la DB
+//  ÚNICO punto donde 
 export const menuDAO =
   dbType === "mongo" ? menuMongoDAO : menuPostgresDAO;
 
