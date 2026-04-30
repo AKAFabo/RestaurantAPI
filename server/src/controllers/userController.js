@@ -4,9 +4,11 @@ import dotenv from 'dotenv';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';
 
+
 dotenv.config();
 const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'http://keycloak:8080';
-
+const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
 
 const userController = {
 
@@ -19,7 +21,7 @@ const userController = {
             res.status(500).json({ error: 'Error fetching users' });
         }
     },
-    
+
     async registerUser(req, res) {
         try {
             const { email, name, password } = req.body;
@@ -47,8 +49,8 @@ const userController = {
             const response = await axios.post(
                 `${KEYCLOAK_URL}/realms/restaurant-realm/protocol/openid-connect/token`,
                 new URLSearchParams({
-                    client_id: 'restaurant-api',
-                    client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+                    client_id: KEYCLOAK_CLIENT_ID,
+                    client_secret: KEYCLOAK_CLIENT_SECRET,
                     grant_type: 'password',
                     username: email,
                     password: password,

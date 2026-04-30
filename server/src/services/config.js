@@ -8,3 +8,6 @@ import OrderService from "./order.service.js";
 export const menuService = new MenuService(menuDAO);
 export const reservationService = new ReservationService(reservationDAO);
 export const orderService = new OrderService(orderDAO, reservationDAO);   /// hay que cambiar por el dao de user 
+
+
+//daos goes in this file, connected trough the services, located in the same folder 

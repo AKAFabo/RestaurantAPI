@@ -1,7 +1,8 @@
 import { menuService } from "../services/config.js";
 
-export const getMenuById = async (req,res) =>{
-    try{
+export const getMenuById = async (req,res) => {
+
+    try {
 
         const { id} = req.params;
         // validacion del id

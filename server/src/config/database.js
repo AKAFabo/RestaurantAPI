@@ -1,4 +1,3 @@
-import connectMongo from './mongo.js';
 import pkg from 'pg';
 import config from './environment.js';
 
@@ -22,6 +21,17 @@ const connectPostgres = async () => {
   }
 };
 
+const connectMongo = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("mongo conectado");
+    } catch (error) {
+        console.error("error conectando a mongo", error);
+        process.exit(1);
+    }
+};
+
+
 const connectDatabase = async () => {
   const dbType = config.database.type;
 
@@ -30,7 +40,7 @@ const connectDatabase = async () => {
     await connectMongo();   // mongo 
   } else {
     console.log("Usando PostgreSQL...");
-    await connectPostgres();
+    await connectPostgres();  
   }
 };
 
