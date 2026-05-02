@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import Menu from "../models/menu.Model.js";
-import Order from "../models/order.Model.js";
+import Menu from "../../models/menu.Model.js";
+import Order from "../../models/order.Model.js";
 import OrderDAO from "./order.dao.abstract.js";
 
 class MongoorderDAO extends OrderDAO {

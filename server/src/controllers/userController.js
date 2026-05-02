@@ -1,5 +1,5 @@
 import axios from 'axios';
-import userDAO from '../daos/userDao.js';
+import userDAO from '../daos/users/user.postgres.Dao.js';
 import dotenv from 'dotenv';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import MenuDAO from "./menu.dao.abstract.js";
-import Menu from "../models/menu.Model.js"
+import Menu from "../../models/menu.Model.js";
 
 class MongoMenuDAO extends MenuDAO{
 
