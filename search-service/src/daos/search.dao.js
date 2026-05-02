@@ -47,7 +47,7 @@ class SearchDAO {
         multi_match: {
           query: query,
           fields: ["name", "description"],
-          fuzziness: "AUTO" // 🔥 clave
+          fuzziness: "AUTO" //  clave
         }
       }
   });

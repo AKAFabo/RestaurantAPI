@@ -15,10 +15,10 @@ app.use(express.json());
 app.use("/", searchRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Search service running 🚀");
+  res.send("Search service running ");
 });
 
-// 🔥 inicializar índice (infraestructura, no negocio)
+//  inicializar índice (infraestructura, no negocio)
 (async () => {
   try {
     await searchDAO.createIndex();
