@@ -38,8 +38,6 @@ router.get("/protected", keycloak.protect(), (req, res) => {
 router.post("/admin", keycloak.protect("realm:admin"), (req, res) => {
   res.json({ message: "Solo admin " });
 });
-router.get("/api/test", (req, res) => {
-  res.send(`Instancia PID: ${process.pid}`);
-});
+
 
 export default router;

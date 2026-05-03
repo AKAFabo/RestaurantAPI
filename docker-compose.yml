@@ -29,7 +29,8 @@ services:
     build:
       
       context: ./server
-    
+    ports:
+      - "3001:3001"
     environment:
       PG_HOST: postgres_db
       PG_USER: ${PG_USER}

@@ -1,13 +1,9 @@
 import searchService from "../services/search.service.js";
 
 export const reindex = async (req, res) => {
-
-  
   try {
-    
-    console.log("🔥 ENTRÓ A REINDEX");
+
     const result = await searchService.reindex();
-    
 
     res.json(result);
 
@@ -29,7 +25,7 @@ export const searchProducts = async (req, res) => {
         error: "Query 'q' es requerida"
       });
     }
-    console.log("Search instancia:", process.env.HOSTNAME);
+
     const results = await searchService.searchProducts(q);
 
     res.json(results);
@@ -44,13 +40,11 @@ export const searchProducts = async (req, res) => {
 };
 
 export const searchByCategory = async (req, res) => {
-  
   try {
 
     const { categoria } = req.params;
 
     const results = await searchService.searchByCategory(categoria);
-    console.log("Search instancia:", process.env.HOSTNAME);
 
     res.json(results);
 
