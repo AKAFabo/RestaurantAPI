@@ -1,6 +1,8 @@
 import { orderService } from "../services/config.js";
+import os from "os";
 
 export const createOrder = async (req, res) => {
+  console.log(" API  desde:", os.hostname());
   try {
 
     const { restaurant_id, reservation_id, items } = req.body; // obtiene los paramentros del body
@@ -49,6 +51,7 @@ export const createOrder = async (req, res) => {
 
 
 export const getOrderById = async (req, res) => { // obtener una orden por su id 
+  console.log(" API  desde:", os.hostname());
   try {
 
     const { id } = req.params; // obtiene el id del url

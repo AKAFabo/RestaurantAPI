@@ -29,8 +29,7 @@ services:
     build:
       
       context: ./server
-    ports:
-      - "3001:3001"
+    
     environment:
       PG_HOST: postgres_db
       PG_USER: ${PG_USER}
@@ -101,11 +100,15 @@ services:
   search-service:
     build:
       context: ./search-service
-    ports:
-      - "${SEARCH_PORT}:4000"
+
+    volumes:
+      - ./search-service:/app
+      - /app/node_modules
+
     environment:
       ELASTIC_URL: ${ELASTIC_URL}
       API_URL: ${API_URL}
+
     depends_on:
       - elasticsearch
       - api
