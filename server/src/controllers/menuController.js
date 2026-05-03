@@ -5,12 +5,12 @@ export const getMenuById = async (req,res) =>{
 
         const { id} = req.params;
         // validacion del id
-    if (!id){
-        return res.status(400).json({error:"Id requerido"});
+      if (!id){
+          return res.status(400).json({error:"Id requerido"});
 
-    }
+      }
 
-
+      console.log("Instancia:", process.env.HOSTNAME);
 
     const menu = await menuService.getMenuById(id); // obtener informacion del menu
 
@@ -45,6 +45,7 @@ export const updateMenubyId = async (req,res) =>{
         return res.status(400).json({error:"Nombre requerido"});
 
     }
+    console.log("Instancia:", process.env.HOSTNAME);
 
 
 
@@ -77,6 +78,7 @@ export const deleteMenu = async (req, res) => {
         error: "ID requerido"
       });
     }
+    console.log("Instancia:", process.env.HOSTNAME);
 
     const menu = await menuService.deleteMenu(id); // elimina el menu y devuelve
 

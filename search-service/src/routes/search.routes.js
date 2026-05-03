@@ -6,10 +6,13 @@ const router = express.Router();
 
 
 
-router.post("/search/reindex", reindex);
+//router.post("/search/reindex", reindex);
 
-//  NUEVOS
-router.get("/search/products", searchProducts);
-router.get("/search/products/category/:categoria", searchByCategory);
 
+//router.get("/search/products", searchProducts);
+//router.get("/search/products/category/:categoria", searchByCategory);
+
+router.post("/reindex", reindex);
+router.get("/products", searchProducts);
+router.get("/products/category/:categoria", searchByCategory);
 export default router;
