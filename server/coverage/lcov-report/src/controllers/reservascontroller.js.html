@@ -176,12 +176,13 @@
 <a name='L111'></a><a href='#L111'>111</a>
 <a name='L112'></a><a href='#L112'>112</a>
 <a name='L113'></a><a href='#L113'>113</a>
-<a name='L114'></a><a href='#L114'>114</a>
-<a name='L115'></a><a href='#L115'>115</a>
-<a name='L116'></a><a href='#L116'>116</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L114'></a><a href='#L114'>114</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5x</span>
@@ -205,15 +206,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -227,12 +226,12 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-yes">8x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">8x</span>
@@ -255,14 +254,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -293,18 +289,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import * as reservationDAO from "../daos/reservationDao.js";
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">&nbsp;
+import { reservationService } from "../services/config.js";
+import os from "os";
 &nbsp;
 &nbsp;
 export const createReservation = async (req, res) =&gt; {
+  console.log(" API  desde:", os.hostname());
   try {
 &nbsp;
-    const { table_id, reservation_time, party_size } = req.body; // parametros requeridos 
+    const { table_id, reservation_time, party_size } = req.body; // obtiene los parametros del body 
+    // obtiene los datos de keycloak del usuario que se autentico
+    const user = req.kauth?.grant?.access_token?.content;
+    const email = user?.email;
 &nbsp;
-    const user = req.kauth?.grant?.access_token?.content; // user del key 
-    const email = user?.email; // usuario del key 
-&nbsp;
-    // validaciones
+    // revisa que vengan los datos 
     if (!table_id || !reservation_time || !party_size) {
       return res.status(400).json({
         error: "table_id, reservation_time y party_size son requeridos"
@@ -317,21 +316,19 @@ export const createReservation = async (req, res) =&gt; {
       });
     }
 &nbsp;
-   
-    const dbUser = await reservationDAO.getByEmail(email); // obtengo el user id de la base por medio del email
-&nbsp;
-    if (!dbUser) {
+    const { error, reservation } = // llama al service con los datos 
+      await reservationService.createReservation({
+        email,
+        table_id,
+        reservation_time,
+        party_size
+      });
+      // verifica si devolvio un error
+    if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"
       });
     }
-&nbsp;
-    const reservation = await reservationDAO.createReservation({// crea la reservacion 
-      user_id: dbUser.id, 
-      table_id,
-      reservation_time,
-      party_size
-    });
 &nbsp;
     res.status(201).json({
       message: "Reserva creada",
@@ -346,15 +343,15 @@ export const createReservation = async (req, res) =&gt; {
     });
   }
 };
-&nbsp;
-export const deletereservation = async (req,res) =&gt;{
+export const deleteReservation = async (req, res) =&gt; {
+  console.log(" API  desde:", os.hostname());
   try {
 &nbsp;
-    const { id } = req.params;
-&nbsp;
-    const user = req.kauth?.grant?.access_token?.content; // key id del usuario 
-    const email = user?.email;// email del key del user 
-    // validaciones 
+    const { id } = req.params; // obtiene id del parametro 
+    // obtiene informacion del usuario autenticado 
+    const user = req.kauth?.grant?.access_token?.content;
+    const email = user?.email;
+    // valida que vengan los datos 
     if (!id) {
       return res.status(400).json({
         error: "ID requerido"
@@ -367,17 +364,14 @@ export const deletereservation = async (req,res) =&gt;{
       });
     }
 &nbsp;
-   
-    const dbUser = await reservationDAO.getByEmail(email); // obtiene el id de la db 
-&nbsp;
-    if (!dbUser) {
+    const { error, result } = // llama al service con los datos
+      await reservationService.deleteReservation({ id, email });
+    // busca errores
+    if (error === "USER_NOT_FOUND") {
       return res.status(404).json({
         error: "Usuario no existe en la BD"
       });
     }
-&nbsp;
-    
-    const result = await reservationDAO.deletereservation(id, dbUser.id); // elimina la reserva 
 &nbsp;
     if (result === "NOT_FOUND") {
       return res.status(404).json({
@@ -415,7 +409,7 @@ export const deletereservation = async (req,res) =&gt;{
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-03-28T21:53:26.105Z
+                at 2026-05-04T23:03:35.117Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

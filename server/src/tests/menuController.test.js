@@ -1,46 +1,53 @@
-import { getMenuById } from "../controllers/menuController.js";
-import * as menuDao from "../daos/menuDao.js";
-import { updateMenubyId } from "../controllers/menuController.js";
-import { deleteMenu } from "../controllers/menuController.js";
+// menuController.test.js
+// Pruebas unitarias del controlador de menús
+// Mockea el servicio en lugar del DAO directamente, ya que el controller usa menuService
 
+import { getMenuById, updateMenubyId, deleteMenu, getAllProducts } from "../controllers/menuController.js";
 
-// mock del DAO 
-jest.mock("../daos/menuDao.js");
+// Mock del módulo de servicios - interceptamos menuService antes de que el controller lo use
+jest.mock("../services/config.js", () => ({
+  menuService: {
+    getMenuById: jest.fn(),
+    updateMenuById: jest.fn(),
+    deleteMenu: jest.fn(),
+    getAllProducts: jest.fn(),
+  }
+}));
 
+// Importamos el mock para poder configurarlo en cada prueba
+import { menuService } from "../services/config.js";
+
+// ─────────────────────────────────────────────
+// PRUEBAS: getMenuById
+// ─────────────────────────────────────────────
 describe("getMenuById", () => {
 
-  //  Caso exitoso
-  it("debe devolver un menu cuando existe", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks(); // limpia llamadas anteriores entre pruebas
+  });
 
-    const fakeMenu = {
-      id: 1,
-      name: "Menu 1",
-      products: []
-    };
+  // Caso exitoso: el menú existe
+  it("debe devolver un menú cuando existe", async () => {
 
-    menuDao.getMenuById.mockResolvedValue(fakeMenu);
+    const fakeMenu = { id: 1, name: "Menu 1", products: [] };
 
-    const req = {
-      params: { id: 1 }
-    };
+    menuService.getMenuById.mockResolvedValue(fakeMenu);
 
-    const res = {
-      json: jest.fn()
-    };
+    const req = { params: { id: 1 } };
+    const res = { json: jest.fn() };
 
     await getMenuById(req, res);
 
-    expect(menuDao.getMenuById).toHaveBeenCalledWith(1);
+    // Verifica que el service fue llamado con el id correcto
+    expect(menuService.getMenuById).toHaveBeenCalledWith(1);
+    // Verifica que la respuesta contiene el menú
     expect(res.json).toHaveBeenCalledWith(fakeMenu);
   });
 
-  //  Falta ID
+  // Error 400: falta el id en los parámetros
   it("debe devolver 400 si no hay id", async () => {
 
-    const req = {
-      params: {}
-    };
-
+    const req = { params: {} };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -52,15 +59,12 @@ describe("getMenuById", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Id requerido" });
   });
 
-  //  Menu no existe
-  it("debe devolver 404 si no existe el menu", async () => {
+  // Error 404: el menú no existe en la base de datos
+  it("debe devolver 404 si el menú no existe", async () => {
 
-    menuDao.getMenuById.mockResolvedValue(null);
+    menuService.getMenuById.mockResolvedValue(null);
 
-    const req = {
-      params: { id: 99 }
-    };
-
+    const req = { params: { id: 99 } };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -72,15 +76,12 @@ describe("getMenuById", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Menu no encontrado" });
   });
 
-  //  Error interno
-  it("debe devolver 500 si ocurre un error", async () => {
+  // Error 500: falla inesperada en el servicio
+  it("debe devolver 500 si ocurre un error interno", async () => {
 
-    menuDao.getMenuById.mockRejectedValue(new Error("DB error"));
+    menuService.getMenuById.mockRejectedValue(new Error("Error inesperado"));
 
-    const req = {
-      params: { id: 1 }
-    };
-
+    const req = { params: { id: 1 } };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -94,48 +95,45 @@ describe("getMenuById", () => {
 
 });
 
-
-
-
-
+// ─────────────────────────────────────────────
+// PRUEBAS: updateMenubyId
+// ─────────────────────────────────────────────
 describe("updateMenubyId", () => {
 
-  //  Actualización exitosa
-  it("debe actualizar un menu correctamente", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const fakeMenu = {
-      id: 1,
-      name: "Nuevo nombre"
-    };
+  // Caso exitoso: actualización correcta
+  it("debe actualizar un menú correctamente", async () => {
 
-    menuDao.updateMenubyId.mockResolvedValue(fakeMenu);
+    const fakeMenu = { id: 1, name: "Nuevo nombre" };
+
+    menuService.updateMenuById.mockResolvedValue(fakeMenu);
 
     const req = {
       params: { id: 1 },
       body: { name: "Nuevo nombre" }
     };
-
-    const res = {
-      json: jest.fn()
-    };
+    const res = { json: jest.fn() };
 
     await updateMenubyId(req, res);
 
-    expect(menuDao.updateMenubyId).toHaveBeenCalledWith(1, "Nuevo nombre");
+    // Verifica que el service recibió los parámetros correctos
+    expect(menuService.updateMenuById).toHaveBeenCalledWith(1, "Nuevo nombre");
     expect(res.json).toHaveBeenCalledWith({
       message: "Menu actualizado",
       menu: fakeMenu
     });
   });
-// provovar errores 
-  //  Falta ID
-  it("debe devolver 400 si falta id", async () => {
+
+  // Error 400: falta el id
+  it("debe devolver 400 si falta el id", async () => {
 
     const req = {
       params: {},
       body: { name: "Test" }
     };
-
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -147,14 +145,13 @@ describe("updateMenubyId", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Id requerido" });
   });
 
-  //  Falta name
-  it("debe devolver 400 si falta name", async () => {
+  // Error 400: falta el nombre en el body
+  it("debe devolver 400 si falta el nombre", async () => {
 
     const req = {
       params: { id: 1 },
       body: {}
     };
-
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -166,16 +163,15 @@ describe("updateMenubyId", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Nombre requerido" });
   });
 
-  //  No existe
-  it("debe devolver 404 si el menu no existe", async () => {
+  // Error 404: el menú a actualizar no existe
+  it("debe devolver 404 si el menú no existe", async () => {
 
-    menuDao.updateMenubyId.mockResolvedValue(null);
+    menuService.updateMenuById.mockResolvedValue(null);
 
     const req = {
       params: { id: 99 },
       body: { name: "Test" }
     };
-
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -187,16 +183,15 @@ describe("updateMenubyId", () => {
     expect(res.json).toHaveBeenCalledWith({ error: "Menu no encontrado" });
   });
 
-  // Error interno
-  it("debe devolver 500 si ocurre un error", async () => {
+  // Error 500: falla inesperada en el servicio
+  it("debe devolver 500 si ocurre un error interno", async () => {
 
-    menuDao.updateMenubyId.mockRejectedValue(new Error("DB error"));
+    menuService.updateMenuById.mockRejectedValue(new Error("Error inesperado"));
 
     const req = {
       params: { id: 1 },
       body: { name: "Test" }
     };
-
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -210,42 +205,33 @@ describe("updateMenubyId", () => {
 
 });
 
-
-////////
-
-
+// ─────────────────────────────────────────────
+// PRUEBAS: deleteMenu
+// ─────────────────────────────────────────────
 describe("deleteMenu", () => {
 
-  //  Eliminación exitosa
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Caso exitoso: eliminación correcta
   it("debe eliminar un menú correctamente", async () => {
 
-    menuDao.deleteMenu.mockResolvedValue({ id: 1 });
+    menuService.deleteMenu.mockResolvedValue({ id: 1 });
 
-    const req = {
-      params: { id: 1 }
-    };
-
-    const res = {
-      json: jest.fn()
-    };
+    const req = { params: { id: 1 } };
+    const res = { json: jest.fn() };
 
     await deleteMenu(req, res);
 
-    expect(menuDao.deleteMenu).toHaveBeenCalledWith(1);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Menú eliminado correctamente"
-    });
+    expect(menuService.deleteMenu).toHaveBeenCalledWith(1);
+    expect(res.json).toHaveBeenCalledWith({ message: "Menú eliminado correctamente" });
   });
 
-  // provocar los errores 
+  // Error 400: falta el id
+  it("debe devolver 400 si falta el id", async () => {
 
-  //  Falta ID
-  it("debe devolver 400 si falta id", async () => {
-
-    const req = {
-      params: {}
-    };
-
+    const req = { params: {} };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -254,20 +240,15 @@ describe("deleteMenu", () => {
     await deleteMenu(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "ID requerido"
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "ID requerido" });
   });
 
-  // . No existe
+  // Error 404: el menú a eliminar no existe
   it("debe devolver 404 si el menú no existe", async () => {
 
-    menuDao.deleteMenu.mockResolvedValue(null);
+    menuService.deleteMenu.mockResolvedValue(null);
 
-    const req = {
-      params: { id: 99 }
-    };
-
+    const req = { params: { id: 99 } };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -276,20 +257,15 @@ describe("deleteMenu", () => {
     await deleteMenu(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Menú no encontrado"
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Menú no encontrado" });
   });
 
-  //  Error interno
-  it("debe devolver 500 si ocurre un error", async () => {
+  // Error 500: falla inesperada en el servicio
+  it("debe devolver 500 si ocurre un error interno", async () => {
 
-    menuDao.deleteMenu.mockRejectedValue(new Error("DB error"));
+    menuService.deleteMenu.mockRejectedValue(new Error("Error inesperado"));
 
-    const req = {
-      params: { id: 1 }
-    };
-
+    const req = { params: { id: 1 } };
     const res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn()
@@ -298,9 +274,54 @@ describe("deleteMenu", () => {
     await deleteMenu(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Error eliminando menú"
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Error eliminando menú" });
+  });
+
+});
+
+// ─────────────────────────────────────────────
+// PRUEBAS: getAllProducts
+// ─────────────────────────────────────────────
+describe("getAllProducts", () => {
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Caso exitoso: retorna lista de productos
+  it("debe devolver todos los productos", async () => {
+
+    const fakeProducts = [
+      { id: 1, name: "Tacos de Canasta", price: 4.50 },
+      { id: 2, name: "Agua de Jamaica", price: 2.00 }
+    ];
+
+    menuService.getAllProducts.mockResolvedValue(fakeProducts);
+
+    const req = {};
+    const res = { json: jest.fn() };
+
+    await getAllProducts(req, res);
+
+    expect(menuService.getAllProducts).toHaveBeenCalled();
+    expect(res.json).toHaveBeenCalledWith(fakeProducts);
+  });
+
+  // Error 500: falla inesperada en el servicio
+  it("debe devolver 500 si ocurre un error interno", async () => {
+
+    menuService.getAllProducts.mockRejectedValue(new Error("Error inesperado"));
+
+    const req = {};
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn()
+    };
+
+    await getAllProducts(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: "Error obteniendo productos" });
   });
 
 });

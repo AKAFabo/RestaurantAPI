@@ -75,18 +75,18 @@ services:
     depends_on:
       - db
 
-  mongo:
-    image: mongo:7
-    container_name: mongo_db
-    restart: always
-    ports:
-      - "${MONGO_PORT}:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
-    volumes:
-      - mongo_data:/data/db
+  #mongo:
+   # image: mongo:7
+    #container_name: mongo_db
+    #restart: always
+    #ports:
+      #- "${MONGO_PORT}:27017"
+    #environment:
+    #  MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+    #  MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+     # MONGO_INITDB_DATABASE: ${MONGO_DB}
+    #volumes:
+    #  - mongo_data:/data/db
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
@@ -123,6 +123,121 @@ services:
       - api
       - search-service
 
+
+  # ─────────────────────────────────────────────
+  # SHARD 1 — rsProducts (menus/productos)
+  # ─────────────────────────────────────────────
+  mongo1:
+    image: mongo:7
+    container_name: mongo1
+    command: ["mongod", "--replSet", "rsProducts", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo1_data:/data/db
+    profiles: ["full"]
+ 
+  mongo2:
+    image: mongo:7
+    container_name: mongo2
+    command: ["mongod", "--replSet", "rsProducts", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo2_data:/data/db
+    profiles: ["full"]
+ 
+  mongo3:
+    image: mongo:7
+    container_name: mongo3
+    command: ["mongod", "--replSet", "rsProducts", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo3_data:/data/db
+    profiles: ["full"]
+ 
+  # ─────────────────────────────────────────────
+  # SHARD 2 — rsReservations (reservas)
+  # ─────────────────────────────────────────────
+  mongo4:
+    image: mongo:7
+    container_name: mongo4
+    command: ["mongod", "--replSet", "rsReservations", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo4_data:/data/db
+    profiles: ["full"]
+ 
+  mongo5:
+    image: mongo:7
+    container_name: mongo5
+    command: ["mongod", "--replSet", "rsReservations", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo5_data:/data/db
+    profiles: ["full"]
+ 
+  mongo6:
+    image: mongo:7
+    container_name: mongo6
+    command: ["mongod", "--replSet", "rsReservations", "--shardsvr", "--bind_ip_all", "--port", "27018"]
+    volumes:
+      - mongo6_data:/data/db
+    profiles: ["full"]
+ 
+  # ─────────────────────────────────────────────
+  # Config Server (para el router mongos)
+  # ─────────────────────────────────────────────
+  configsvr:
+    image: mongo:7
+    container_name: configsvr
+    command: ["mongod", "--configsvr", "--replSet", "cfgRS", "--bind_ip_all", "--port", "27019"]
+    volumes:
+      - configsvr_data:/data/configdb
+    profiles: ["full"]
+ 
+  # ─────────────────────────────────────────────
+  # Router Mongos
+  # ─────────────────────────────────────────────
+  mongos:
+    image: mongo:7
+    container_name: mongos
+    command: >
+      mongos
+      --configdb cfgRS/configsvr:27019
+      --bind_ip_all
+    ports:
+      - "27020:27017"
+    depends_on:
+      - configsvr
+      - mongo1
+      - mongo2
+      - mongo3
+      - mongo4
+      - mongo5
+      - mongo6
+    profiles: ["full"]
+ 
+  # ─────────────────────────────────────────────
+  # Inicialización — un solo contenedor bash
+  # ─────────────────────────────────────────────
+  mongo-init:
+    image: mongo:7
+    container_name: mongo-init
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+      - mongo4
+      - mongo5
+      - mongo6
+      - configsvr
+      - mongos
+    volumes:
+      - ./mongo-init:/scripts
+    entrypoint: ["bash", "/scripts/init.sh"]
+    profiles: ["full"]
+ 
+ 
 volumes:
   postgres_data:
-  mongo_data:
+  mongo1_data:
+  mongo2_data:
+  mongo3_data:
+  mongo4_data:
+  mongo5_data:
+  mongo6_data:
+  configsvr_data:

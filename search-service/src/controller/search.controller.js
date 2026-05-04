@@ -1,7 +1,7 @@
 import searchService from "../services/search.service.js";
 import os from "os";
 export const reindex = async (req, res) => {
-  console.log("🔥 reindex desde:", os.hostname());
+  console.log(" reindex desde:", os.hostname());
   
   try {
 
@@ -18,7 +18,7 @@ export const reindex = async (req, res) => {
   }
 };
 export const searchProducts = async (req, res) => {
-  console.log("🔥 searchProducts desde:", os.hostname());
+  console.log(" searchProducts desde:", os.hostname());
   try {
 
     const { q } = req.query;
@@ -43,7 +43,7 @@ export const searchProducts = async (req, res) => {
 };
 
 export const searchByCategory = async (req, res) => {
-  console.log("🔥 searchByCategory desde:", os.hostname());
+  console.log("searchByCategory desde:", os.hostname());
   try {
 
     const { categoria } = req.params;
