@@ -14,12 +14,6 @@ const userSchema= new mongoose.Schema({
         type:String,
         required:true
     },
-    role_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        required:true,
-        ref: "Role"
-    }
-// falta o crear el model de role o meterlo aqui mismo
 
 
 },{ timestamps: { createdAt: 'created_at' }})
