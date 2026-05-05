@@ -1,7 +1,7 @@
-import Reservation from "../models/reservations.Model.js";
-import Restaurant from "../models/restaurant.model.js";
-import User from "../models/user.Model.js";  
-import ReservationDAO from "./reservation/reservation.dao.abstract.js";
+import Reservation from "../../models/reservations.Model.js";
+import Restaurant from "../../models/restaurant.model.js";
+import User from "../../models/user.Model.js";  
+import ReservationDAO from "./reservation.dao.abstract.js";
 import mongoose from "mongoose";
 
 
@@ -51,10 +51,9 @@ class MongoReservationDAO extends ReservationDAO {
     return reservation;
 }
 
-  async deleteReservation(reservation_id, user_id) {
+async deleteReservation(reservation_id, user_id) {
 
     const reservationObjectId = new mongoose.Types.ObjectId(reservation_id);
-    
     
     const reserva = await Reservation.findById(reservationObjectId);
     
@@ -70,9 +69,11 @@ class MongoReservationDAO extends ReservationDAO {
       return "ALREADY_CANCELLED";
     }
 
-    await Reservation.findByIdAndUpdate(reservation_id, {
-      status: "CANCELLED"
-    });
+    // Incluir restaurant_id (shard key) en la query
+    await Reservation.findOneAndUpdate(
+      { _id: reservationObjectId, restaurant_id: reserva.restaurant_id },
+      { status: "CANCELLED" }
+    );
 
     return "OK";
   }

@@ -1,5 +1,5 @@
 import MenuDAO from "./menu.dao.abstract.js";
-import { pool } from "../config/database.js";
+import { pool } from "../../config/database.js";
 
 class PostgresMenuDAO extends MenuDAO {
 

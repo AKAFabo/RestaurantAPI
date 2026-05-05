@@ -1,9 +1,10 @@
 
 import { reservationService } from "../services/config.js";
-
+import os from "os";
 
 
 export const createReservation = async (req, res) => {
+  console.log(" API  desde:", os.hostname());
   try {
 
     const { table_id, reservation_time, party_size } = req.body; // obtiene los parametros del body 
@@ -52,6 +53,7 @@ export const createReservation = async (req, res) => {
   }
 };
 export const deleteReservation = async (req, res) => {
+  console.log(" API  desde:", os.hostname());
   try {
 
     const { id } = req.params; // obtiene id del parametro 

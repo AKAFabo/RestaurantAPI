@@ -1,30 +1,52 @@
-import { createReservation } from "../controllers/reservascontroller.js";
-import * as reservationDAO from "../daos/reservationDao.js";
-import { deletereservation } from "../controllers/reservascontroller.js";
+// reservationController.test.js
+// Pruebas unitarias del controlador de reservaciones
+// Mockea el reservationService ya que el controller depende de él
 
-jest.mock("../daos/reservationDao.js");
+import { createReservation, deleteReservation } from "../controllers/reservascontroller.js";
 
+// Mock del módulo de servicios
+jest.mock("../services/config.js", () => ({
+  reservationService: {
+    createReservation: jest.fn(),
+    deleteReservation: jest.fn(),
+  }
+}));
+
+import { reservationService } from "../services/config.js";
+
+// ─────────────────────────────────────────────
+// PRUEBAS: createReservation
+// ─────────────────────────────────────────────
 describe("createReservation", () => {
 
-  //  Caso exitoso
-  it("debe crear una reserva correctamente", async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-    const fakeUser = { id: 1 };
-    const fakeReservation = { id: 10, table_id: 2 };
+  // Caso exitoso: reserva creada correctamente
+  it("debe crear una reserva y retornar 201", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue(fakeUser);
-    reservationDAO.createReservation.mockResolvedValue(fakeReservation);
+    const fakeReservation = {
+      id: 10,
+      user_id: 1,
+      table_id: 3,
+      reservation_time: "2026-06-01T19:00:00",
+      party_size: 4,
+      status: "CONFIRMED"
+    };
+
+    reservationService.createReservation.mockResolvedValue({ reservation: fakeReservation });
 
     const req = {
       body: {
-        table_id: 2,
-        reservation_time: "2026-03-25 18:00",
+        table_id: 3,
+        reservation_time: "2026-06-01T19:00:00",
         party_size: 4
       },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -37,15 +59,12 @@ describe("createReservation", () => {
 
     await createReservation(req, res);
 
-    expect(reservationDAO.getByEmail).toHaveBeenCalledWith("test@mail.com");
-
-    expect(reservationDAO.createReservation).toHaveBeenCalledWith({
-      user_id: 1,
-      table_id: 2,
-      reservation_time: "2026-03-25 18:00",
+    expect(reservationService.createReservation).toHaveBeenCalledWith({
+      email: "cliente@restaurante.com",
+      table_id: 3,
+      reservation_time: "2026-06-01T19:00:00",
       party_size: 4
     });
-
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       message: "Reserva creada",
@@ -53,15 +72,15 @@ describe("createReservation", () => {
     });
   });
 
-  // Faltan datos
-  it("debe devolver 400 si faltan datos", async () => {
+  // Error 400: faltan campos requeridos en el body
+  it("debe retornar 400 si faltan campos requeridos", async () => {
 
     const req = {
-      body: {},
+      body: { table_id: 3 }, // faltan reservation_time y party_size
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -80,16 +99,16 @@ describe("createReservation", () => {
     });
   });
 
-  //  Usuario no autenticado
-  it("debe devolver 401 si no hay usuario autenticado", async () => {
+  // Error 401: no hay usuario autenticado
+  it("debe retornar 401 si no hay usuario autenticado", async () => {
 
     const req = {
       body: {
-        table_id: 2,
-        reservation_time: "2026-03-25 18:00",
+        table_id: 3,
+        reservation_time: "2026-06-01T19:00:00",
         party_size: 4
       },
-      kauth: {} // sin email
+      kauth: null // sin token
     };
 
     const res = {
@@ -100,26 +119,24 @@ describe("createReservation", () => {
     await createReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Usuario no autenticado"
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Usuario no autenticado" });
   });
 
-  //  Usuario no existe en DB
-  it("debe devolver 404 si el usuario no existe", async () => {
+  // Error 404: usuario no existe en la BD
+  it("debe retornar 404 si el usuario no existe en la BD", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue(null);
+    reservationService.createReservation.mockResolvedValue({ error: "USER_NOT_FOUND" });
 
     const req = {
       body: {
-        table_id: 2,
-        reservation_time: "2026-03-25 18:00",
+        table_id: 3,
+        reservation_time: "2026-06-01T19:00:00",
         party_size: 4
       },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "noexiste@restaurante.com" }
           }
         }
       }
@@ -133,27 +150,24 @@ describe("createReservation", () => {
     await createReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({
-      error: "Usuario no existe en la BD"
-    });
+    expect(res.json).toHaveBeenCalledWith({ error: "Usuario no existe en la BD" });
   });
 
-  //  Error interno
-  it("debe devolver 500 si ocurre un error", async () => {
+  // Error 500: falla inesperada en el service
+  it("debe retornar 500 si ocurre un error interno", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.createReservation.mockRejectedValue(new Error("DB error"));
+    reservationService.createReservation.mockRejectedValue(new Error("Mesa no disponible en ese horario"));
 
     const req = {
       body: {
-        table_id: 2,
-        reservation_time: "2026-03-25 18:00",
+        table_id: 3,
+        reservation_time: "2026-06-01T19:00:00",
         party_size: 4
       },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -167,55 +181,56 @@ describe("createReservation", () => {
     await createReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: "Mesa no disponible en ese horario" });
   });
 
 });
 
-///
+// ─────────────────────────────────────────────
+// PRUEBAS: deleteReservation
+// ─────────────────────────────────────────────
+describe("deleteReservation", () => {
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
+  // Caso exitoso: reserva cancelada correctamente
+  it("debe cancelar la reserva y retornar mensaje de éxito", async () => {
 
-
-
-describe("deletereservation", () => {
-
-  //  Cancelación exitosa
-  it("debe cancelar una reserva correctamente", async () => {
-
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.deletereservation.mockResolvedValue("OK");
+    reservationService.deleteReservation.mockResolvedValue({ result: "OK" });
 
     const req = {
-      params: { id: 1 },
+      params: { id: 10 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
     };
 
-    const res = {
-      json: jest.fn()
-    };
+    const res = { json: jest.fn() };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Reserva cancelada correctamente"
+    expect(reservationService.deleteReservation).toHaveBeenCalledWith({
+      id: 10,
+      email: "cliente@restaurante.com"
     });
+    expect(res.json).toHaveBeenCalledWith({ message: "Reserva cancelada correctamente" });
   });
 
-  //  Falta ID
-  it("debe devolver 400 si falta id", async () => {
+  // Error 400: falta el id
+  it("debe retornar 400 si falta el id", async () => {
 
     const req = {
       params: {},
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -226,17 +241,18 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "ID requerido" });
   });
 
-  // Usuario no autenticado
-  it("debe devolver 401 si no hay usuario autenticado", async () => {
+  // Error 401: no hay usuario autenticado
+  it("debe retornar 401 si no hay usuario autenticado", async () => {
 
     const req = {
-      params: { id: 1 },
-      kauth: {}
+      params: { id: 10 },
+      kauth: null
     };
 
     const res = {
@@ -244,22 +260,23 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: "Usuario no autenticado" });
   });
 
-  // Usuario no existe
-  it("debe devolver 404 si el usuario no existe", async () => {
+  // Error 404: usuario no existe en la BD
+  it("debe retornar 404 si el usuario no existe en la BD", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue(null);
+    reservationService.deleteReservation.mockResolvedValue({ error: "USER_NOT_FOUND" });
 
     const req = {
-      params: { id: 1 },
+      params: { id: 10 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "noexiste@restaurante.com" }
           }
         }
       }
@@ -270,23 +287,23 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "Usuario no existe en la BD" });
   });
 
-  //  Reserva no encontrada
-  it("debe devolver 404 si la reserva no existe", async () => {
+  // Error 404: la reserva no existe
+  it("debe retornar 404 si la reserva no existe", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.deletereservation.mockResolvedValue("NOT_FOUND");
+    reservationService.deleteReservation.mockResolvedValue({ result: "NOT_FOUND" });
 
     const req = {
-      params: { id: 1 },
+      params: { id: 99 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -297,23 +314,23 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({ error: "Reserva no encontrada" });
   });
 
-  //  No es dueño
-  it("debe devolver 403 si no es dueño de la reserva", async () => {
+  // Error 403: el usuario no es dueño de la reserva
+  it("debe retornar 403 si el usuario no es dueño de la reserva", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.deletereservation.mockResolvedValue("NOT_OWNER");
+    reservationService.deleteReservation.mockResolvedValue({ result: "NOT_OWNER" });
 
     const req = {
-      params: { id: 1 },
+      params: { id: 10 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -324,23 +341,23 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith({ error: "No puedes cancelar esta reserva" });
   });
 
-  //  Ya cancelada
-  it("debe devolver 400 si la reserva ya está cancelada", async () => {
+  // Error 400: la reserva ya estaba cancelada
+  it("debe retornar 400 si la reserva ya está cancelada", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.deletereservation.mockResolvedValue("ALREADY_CANCELLED");
+    reservationService.deleteReservation.mockResolvedValue({ result: "ALREADY_CANCELLED" });
 
     const req = {
-      params: { id: 1 },
+      params: { id: 10 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -351,23 +368,23 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: "La reserva ya está cancelada" });
   });
 
-  //  Error interno
-  it("debe devolver 500 si ocurre un error", async () => {
+  // Error 500: falla inesperada en el service
+  it("debe retornar 500 si ocurre un error interno", async () => {
 
-    reservationDAO.getByEmail.mockResolvedValue({ id: 1 });
-    reservationDAO.deletereservation.mockRejectedValue(new Error("DB error"));
+    reservationService.deleteReservation.mockRejectedValue(new Error("Error inesperado"));
 
     const req = {
-      params: { id: 1 },
+      params: { id: 10 },
       kauth: {
         grant: {
           access_token: {
-            content: { email: "test@mail.com" }
+            content: { email: "cliente@restaurante.com" }
           }
         }
       }
@@ -378,9 +395,10 @@ describe("deletereservation", () => {
       json: jest.fn()
     };
 
-    await deletereservation(req, res);
+    await deleteReservation(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: "Error cancelando reserva" });
   });
 
 });

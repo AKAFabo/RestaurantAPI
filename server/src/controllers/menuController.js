@@ -1,8 +1,9 @@
 import { menuService } from "../services/config.js";
 
-export const getMenuById = async (req,res) => {
-
-    try {
+import os from "os";
+export const getMenuById = async (req,res) =>{
+  console.log(" API  desde:", os.hostname());
+    try{
 
         const { id} = req.params;
         // validacion del id
@@ -31,6 +32,7 @@ export const getMenuById = async (req,res) => {
 };
 
 export const updateMenubyId = async (req,res) =>{
+    console.log(" API  desde:", os.hostname());
     try{
         // parametros
         const { id} = req.params;
@@ -69,6 +71,7 @@ export const updateMenubyId = async (req,res) =>{
 
 
 export const deleteMenu = async (req, res) => {
+  console.log(" API  desde:", os.hostname());
   try {
 
     const { id } = req.params; // parametro del url
@@ -103,6 +106,7 @@ export const deleteMenu = async (req, res) => {
 
 
 export const getAllProducts = async (req, res) => { // para el elastic search que necesita todos los productos 
+   console.log(" API productos desde:", os.hostname());
   try {
 
     const products = await menuService.getAllProducts(); // llama al service para obtener los productos 
