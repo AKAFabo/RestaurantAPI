@@ -1,5 +1,6 @@
 import pkg from 'pg';
 import config from './environment.js';
+import mongoose from 'mongoose'
 
 const { Pool } = pkg;
 
@@ -23,7 +24,7 @@ const connectPostgres = async () => {
 
 const connectMongo = async () => {
     try {
-        await mongoose.connect(process.env.MONGO_URI);
+        await mongoose.connect(config.mongo.uri);
         console.log("mongo conectado");
     } catch (error) {
         console.error("error conectando a mongo", error);

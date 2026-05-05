@@ -1,6 +1,6 @@
 import axios from "axios";
 import dotenv from 'dotenv';
-import userDAO from '../daos/userDao.js';
+import userDAO from '../daos/user.postgres.dao.js';
 import restaurantDAO from '../daos/restaurantDao.js';
 
 dotenv.config();

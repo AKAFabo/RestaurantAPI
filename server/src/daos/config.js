@@ -6,7 +6,7 @@ import reservationPostgresDAO from "./reservation.postgres.dao.js";
 import orderPostgresDAO from "./order.postgres.dao.js";
 
 import userPostgresDAO from "./user.postgres.dao.js";
-import restaurantPostgresDAO from "./restaurant.postgres.dao.js";
+//import restaurantPostgresDAO from "./restaurant.postgres.dao.js";
 
 
 
@@ -16,7 +16,7 @@ import reservationMongoDAO from "./reservation.mongo.dao.js";
 import orderMongoDAO from "./order.mongo.dao.js";
 
 import userMongoDAO from "./user.mongo.dao.js";
-import restaurantMongoDAO from "./restaurant.mongo.dao.js";
+//import restaurantMongoDAO from "./restaurant.mongo.dao.js";
 
 
 
@@ -35,5 +35,5 @@ export const orderDAO =
 export const userDAO =
   dbType === "mongo" ? userMongoDAO : userPostgresDAO; 
 
-export const restaurantDAO =
-  dbType === "mongo" ? restaurantMongoDAO : restaurantPostgresDAO;
+//export const restaurantDAO =
+ // dbType === "mongo" ? restaurantMongoDAO : restaurantPostgresDAO;

@@ -1,8 +1,9 @@
 import axios from 'axios';
-import userDAO from '../daos/userDao.js';
+import userDAO from '../daos/user.postgres.dao.js';
 import dotenv from 'dotenv';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';
+import { userService } from '../services/config.js'
 
 
 dotenv.config();
@@ -14,7 +15,7 @@ const userController = {
 
     async getUsers(req, res) {  
         try {
-            const users = await userDAO.getUsers();
+            const users = await userService.getUsers();
             res.json(users);
         } catch (error) {
             console.error('Error fetching users:', error);
@@ -30,7 +31,7 @@ const userController = {
                 return res.status(400).json({ error: 'Email, name and password are required' });
             }
 
-            const newUser = await userDAO.registerUser({ email, name, password });
+            const newUser = await userService.registerUser({ email, name, password });
             res.status(201).json(newUser);
         } catch (error) {
             console.error('Error registering user:', error);
@@ -73,7 +74,7 @@ const userController = {
         try {  
             const token = req.kauth?.grant?.access_token?.content;
             const email = token?.email;
-            const dbUser = await userDAO.getByEmail(email);
+            const dbUser = await userService.getByEmail(email);
 
             if (!dbUser) {
                 return res.status(404).json({ error: 'User not found in database' });
@@ -103,7 +104,7 @@ const userController = {
             }
 
             // Obtener el email actual del usuario desde PostgreSQL
-            const currentUser = await userDAO.getUserById(id);
+            const currentUser = await userService.getUserById(id);
             if (!currentUser) {
                 return res.status(404).json({ error: 'User not found' });
             }
@@ -122,7 +123,7 @@ const userController = {
     async deleteUser(req, res) {
         try {
             const { id } = req.params;
-            const user = await userDAO.getUserById(id);
+            const user = await userService.getUserById(id);
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
