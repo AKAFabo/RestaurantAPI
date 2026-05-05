@@ -1,4 +1,4 @@
-import ReservationDAO from "./reservation.dao.abstract.js";
+import ReservationDAO from "./reservation/reservation.dao.abstract.js";
 import { pool } from "../config/database.js";
 
 class PostgresReservationDAO extends ReservationDAO {

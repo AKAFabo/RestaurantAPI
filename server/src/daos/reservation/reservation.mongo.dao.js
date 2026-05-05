@@ -1,7 +1,7 @@
 import Reservation from "../models/reservations.Model.js";
 import Restaurant from "../models/restaurant.model.js";
 import User from "../models/user.Model.js";  
-import ReservationDAO from "./reservation.dao.abstract.js";
+import ReservationDAO from "./reservation/reservation.dao.abstract.js";
 import mongoose from "mongoose";
 
 

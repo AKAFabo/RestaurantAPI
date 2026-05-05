@@ -1,7 +1,8 @@
 import axios from "axios";
 import dotenv from 'dotenv';
-import userDAO from '../daos/user.postgres.dao.js';
-import restaurantDAO from '../daos/restaurantDao.js';
+import userDAO from '../daos/users/user.postgres.dao.js';
+import { userService, UserService } from "../services/config.js";
+//import restaurantDAO from '../daos/restaurantDao.js';
 
 dotenv.config();
 
@@ -19,7 +20,7 @@ const restaurantController = {
             const token = req.kauth?.grant?.access_token?.content;
             const email = token?.email;
             console.log('Token email:', email);
-            const dbUser = await userDAO.getByEmail(email);
+            const dbUser = await userService.getByEmail(email);
 
             if (!dbUser) {
                 return res.status(404).json({ error: 'User not found' });

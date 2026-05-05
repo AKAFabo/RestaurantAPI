@@ -1,6 +1,6 @@
-import User from "../models/user.Model.js";
+import User from "../../models/user.Model.js";
 import crypto from "crypto";
-import { createKeycloakUser } from "../services/keycloakService.js";
+import { createKeycloakUser } from "../../services/keycloakService.js";
 import UserDAO from './user.dao.abstract.js'
 
 class UserMongoDAO extends UserDAO {

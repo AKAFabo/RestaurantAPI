@@ -1,5 +1,5 @@
-import { pool } from "../config/database.js";
-import { createKeycloakUser } from "../services/keycloakService.js";
+import { pool } from "../../config/database.js";
+import { createKeycloakUser } from "../../services/keycloakService.js";
 import crypto from "crypto";
 import UserDAO from "./user.dao.abstract.js";
 

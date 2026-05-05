@@ -1,4 +1,4 @@
-import OrderDAO from "./order.dao.abstract.js";
+import OrderDAO from "./orders/order.dao.abstract.js";
 import { pool } from "../config/database.js";
 
 class PostgresOrderDAO extends OrderDAO {
