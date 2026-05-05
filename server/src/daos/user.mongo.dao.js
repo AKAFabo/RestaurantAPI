@@ -23,10 +23,10 @@ class UserMongoDAO extends UserDAO {
         }
     }
 
-    async registerUser({ email, name, password, role_id }) {
+    async registerUser({ email, name, password}) {
         try {
             // Crear usuario en Keycloak
-            await createKeycloakUser({ email, name, password });
+           // await createKeycloakUser({ email, name, password });
 
             // Hash SHA-256 (igual que en Postgres)
             const hashedPassword = crypto
@@ -37,8 +37,7 @@ class UserMongoDAO extends UserDAO {
             const newUser = new User({
                 email,
                 name,
-                password_hash: hashedPassword,
-                role_id
+                password_hash: hashedPassword
             });
 
             return await newUser.save();

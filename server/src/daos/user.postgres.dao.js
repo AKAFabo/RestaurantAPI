@@ -24,7 +24,7 @@ class UserPostgresDAO extends UserDAO {
     async registerUser({ email, name, password }) {
         try {
 
-            await createKeycloakUser({ email, name, password }); // Keycloak user creation
+            //await createKeycloakUser({ email, name, password }); // Keycloak user creation
             const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');         
 
             const result = await pool.query(

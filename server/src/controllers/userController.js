@@ -1,6 +1,7 @@
 import axios from 'axios';
 import userDAO from '../daos/user.postgres.dao.js';
 import dotenv from 'dotenv';
+import { createKeycloakUser } from '../services/keycloakService.js';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';
 import { userService } from '../services/config.js'
@@ -31,6 +32,7 @@ const userController = {
                 return res.status(400).json({ error: 'Email, name and password are required' });
             }
 
+            await createKeycloakUser({ email, name, password }); // Keycloak user creation
             const newUser = await userService.registerUser({ email, name, password });
             res.status(201).json(newUser);
         } catch (error) {

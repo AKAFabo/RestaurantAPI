@@ -17,11 +17,11 @@ class UserService {
 
     async registerUser({ email, name, password }) {
 
-        const user = await this.userDAO.registerUser(
+        const user = await this.userDAO.registerUser({
             email,
             name,
             password
-        )
+        })
 
         return { user };
     }
