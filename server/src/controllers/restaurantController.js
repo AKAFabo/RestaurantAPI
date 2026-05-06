@@ -2,7 +2,8 @@ import axios from "axios";
 import dotenv from 'dotenv';
 
 import userDAO from '../daos/users/user.postgres.dao.js';
-import { userService, UserService } from "../services/config.js";
+import { userService } from "../services/config.js";
+import { restaurantService } from "../services/config.js";
 //import restaurantDAO from '../daos/restaurantDao.js';
 
 
@@ -21,14 +22,15 @@ const restaurantController = {
 
             const token = req.kauth?.grant?.access_token?.content;
             const email = token?.email;
-            console.log('Token email:', email);
+            //console.log('Token email:', email);
             const dbUser = await userService.getByEmail(email);
+            //console.log('ID: ', dbUser.user.id)
 
             if (!dbUser) {
                 return res.status(404).json({ error: 'User not found' });
             }
 
-            const newRestaurant = await restaurantDAO.createRestaurant({ name, address, phone, admin_id: dbUser.id });
+            const newRestaurant = await restaurantService.createRestaurant({ name, address, phone, admin_id: dbUser.user.id });
             res.status(201).json(newRestaurant);
         } catch (error) {
             console.error('Error creating restaurant:', error);
@@ -38,7 +40,7 @@ const restaurantController = {
       
     async getRestaurants(req, res) {
         try {
-            const restaurants = await restaurantDAO.getRestaurants();
+            const restaurants = await restaurantService.getRestaurants();
             res.json(restaurants);
         } catch (error) {
             console.error('Error fetching restaurants:', error);
@@ -53,7 +55,7 @@ const restaurantController = {
             if (!name) {
                 return res.status(400).json({ error: 'Menu name is required' });
             }
-            const newMenu = await restaurantDAO.createMenu(restaurantId, { name });
+            const newMenu = await restaurantService.createMenu(restaurantId, { name });
             res.status(201).json(newMenu);
         } catch (error) {
             console.error('Error creating menu:', error);
