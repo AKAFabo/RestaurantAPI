@@ -1,4 +1,4 @@
-print("🚀 Inicializando rsReservations...");
+print("Inicializando rsReservations...");
 
 rs.initiate({
   _id: "rsReservations",

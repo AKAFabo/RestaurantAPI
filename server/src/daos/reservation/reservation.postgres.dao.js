@@ -13,7 +13,7 @@ class PostgresReservationDAO extends ReservationDAO {
     const client = await pool.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query("BEGIN"); // inica transaccion 
 
       // verificar mesa
       const tableCheck = await client.query(
@@ -36,11 +36,11 @@ class PostgresReservationDAO extends ReservationDAO {
         [table_id, reservation_time]
       );
 
-      if (availabilityCheck.rows.length > 0) {
+      if (availabilityCheck.rows.length > 0) { // si ya hay una no esta disponible 
         throw new Error("Mesa no disponible en ese horario");
       }
 
-      // crear reserva
+      // crea reserva
       const result = await client.query(
         `
         INSERT INTO reservations
@@ -69,7 +69,7 @@ class PostgresReservationDAO extends ReservationDAO {
     const client = await pool.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query("BEGIN");// incio de transaccion 
 
       const result = await client.query(
         `
@@ -78,7 +78,7 @@ class PostgresReservationDAO extends ReservationDAO {
         WHERE id = $1
         `,
         [reservation_id]
-      );
+      ); // busca la reserva 
 
       if (result.rows.length === 0) {
         await client.query("ROLLBACK");
@@ -87,12 +87,12 @@ class PostgresReservationDAO extends ReservationDAO {
 
       const reservation = result.rows[0];
 
-      if (reservation.user_id !== user_id) {
+      if (reservation.user_id !== user_id) { // verifica que sea el dueo
         await client.query("ROLLBACK");
         return "NOT_OWNER";
       }
 
-      if (reservation.status === "cancelled") {
+      if (reservation.status === "cancelled") { // verifica si ya fue cancelada 
         await client.query("ROLLBACK");
         return "ALREADY_CANCELLED";
       }
@@ -104,7 +104,7 @@ class PostgresReservationDAO extends ReservationDAO {
         WHERE id = $1
         `,
         [reservation_id]
-      );
+      ); // cambia el estado de la reserva 
 
       await client.query("COMMIT");
 
@@ -127,7 +127,7 @@ class PostgresReservationDAO extends ReservationDAO {
       WHERE email = $1
       `,
       [email]
-    );
+    ); // obtiene el user por el email 
 
     return result.rows[0] || null;
   }

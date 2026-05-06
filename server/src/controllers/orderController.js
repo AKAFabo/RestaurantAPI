@@ -16,7 +16,7 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    if (!email) {
+    if (!email) {// verifica que venga el email 
       return res.status(401).json({
         error: "Usuario no autenticado"
       });

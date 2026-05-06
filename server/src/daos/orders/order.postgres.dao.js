@@ -8,7 +8,7 @@ class PostgresOrderDAO extends OrderDAO {
     const client = await pool.connect();
 
     try {
-      await client.query("BEGIN");
+      await client.query("BEGIN"); // inica transaccion 
 
       let total = 0;
 
@@ -17,7 +17,7 @@ class PostgresOrderDAO extends OrderDAO {
         throw new Error("Items inválidos");
       }
 
-      for (const item of items) {
+      for (const item of items) { // recorre cada item 
 
         if (!item.quantity || item.quantity <= 0) {
           throw new Error(`Cantidad inválida para producto ${item.product_id}`);
@@ -28,17 +28,17 @@ class PostgresOrderDAO extends OrderDAO {
           FROM products p
           JOIN menus m ON p.menu_id = m.id
           WHERE p.id = $1
-        `;
+        `; // obtiene los datos del producto y del restaurante asociado 
 
         const result = await client.query(productQuery, [item.product_id]);
 
-        if (result.rows.length === 0) {
+        if (result.rows.length === 0) { // valida que exista 
           throw new Error(`Producto ${item.product_id} no existe`);
         }
 
         const product = result.rows[0];
 
-        if (!product.available) {
+        if (!product.available) { // verificar que este disponible
           throw new Error(`Producto ${item.product_id} no disponible`);
         }
 
@@ -47,9 +47,9 @@ class PostgresOrderDAO extends OrderDAO {
           throw new Error(`Producto ${item.product_id} no pertenece al restaurante`);
         }
 
-        total += product.price * item.quantity;
+        total += product.price * item.quantity; // calcula el total 
 
-        item.price = product.price;
+        item.price = product.price; // guarda el precio 
       }
 
       //  
@@ -61,7 +61,7 @@ class PostgresOrderDAO extends OrderDAO {
         RETURNING *
         `,
         [user_id, restaurant_id, reservation_id, total]
-      );
+      ); // inserta la orden 
 
       const order = orderResult.rows[0];
 
@@ -76,7 +76,7 @@ class PostgresOrderDAO extends OrderDAO {
           `,
           [order.id, item.product_id, item.quantity, item.price]
         );
-      }
+      } // inserta cada item en la tabla 
 
       await client.query("COMMIT");
 
@@ -108,7 +108,7 @@ class PostgresOrderDAO extends OrderDAO {
       WHERE id = $1
     `;
 
-    const orderResult = await pool.query(orderQuery, [id]);
+    const orderResult = await pool.query(orderQuery, [id]); // hace el query con el id 
 
     if (orderResult.rows.length === 0) {
       return null;

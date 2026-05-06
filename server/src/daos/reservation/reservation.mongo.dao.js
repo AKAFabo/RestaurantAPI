@@ -8,14 +8,14 @@ import mongoose from "mongoose";
 class MongoReservationDAO extends ReservationDAO {
 
   async getByEmail(email) {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }); // busca el usuario por el email
     return user || null;
   }
 
   
 
   async createReservation({ user_id, table_id, reservation_time }) {
-
+    // convierte los ids
     const tableObjectId = new mongoose.Types.ObjectId(table_id);
     const userObjectId = new mongoose.Types.ObjectId(user_id);
 
@@ -55,13 +55,13 @@ async deleteReservation(reservation_id, user_id) {
 
     const reservationObjectId = new mongoose.Types.ObjectId(reservation_id);
     
-    const reserva = await Reservation.findById(reservationObjectId);
+    const reserva = await Reservation.findById(reservationObjectId); // busca la reserva 
     
     if (!reserva) {
       return "NOT_FOUND";
     }
 
-    if (reserva.user_id.toString() !== user_id.toString()) {
+    if (reserva.user_id.toString() !== user_id.toString()) { // verifica que el usuario sea el dueño 
       return "NOT_OWNER";
     }
 
@@ -69,10 +69,10 @@ async deleteReservation(reservation_id, user_id) {
       return "ALREADY_CANCELLED";
     }
 
-    // Incluir restaurant_id (shard key) en la query
+    
     await Reservation.findOneAndUpdate(
       { _id: reservationObjectId, restaurant_id: reserva.restaurant_id },
-      { status: "CANCELLED" }
+      { status: "CANCELLED" } // cambia el estado de la reserva 
     );
 
     return "OK";

@@ -1,5 +1,4 @@
-// menu.postgres.dao.test.js
-// Pruebas unitarias del DAO de menús para PostgreSQL
+
 // Mockea el pool de conexión para no depender de una base de datos real
 
 import PostgresMenuDAO from "../daos/menu/menu.postgres.Dao.js";
@@ -12,9 +11,9 @@ jest.mock("../config/database.js", () => ({
   }
 }));
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getMenuById
-// ─────────────────────────────────────────────
+
 describe("PostgresMenuDAO - getMenuById", () => {
 
   beforeEach(() => {
@@ -89,9 +88,9 @@ describe("PostgresMenuDAO - getMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: updateMenuById
-// ─────────────────────────────────────────────
+
 describe("PostgresMenuDAO - updateMenuById", () => {
 
   beforeEach(() => {
@@ -140,9 +139,9 @@ describe("PostgresMenuDAO - updateMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: deleteMenu
-// ─────────────────────────────────────────────
+
 describe("PostgresMenuDAO - deleteMenu", () => {
 
   beforeEach(() => {
@@ -188,9 +187,9 @@ describe("PostgresMenuDAO - deleteMenu", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getAllProducts
-// ─────────────────────────────────────────────
+
 describe("PostgresMenuDAO - getAllProducts", () => {
 
   beforeEach(() => {

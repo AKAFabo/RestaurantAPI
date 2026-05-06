@@ -5,14 +5,14 @@ import axios from "axios";
 import searchDAO from "../daos/search.dao.js";
 import { llmProducts } from "./data/products.llm.js";
 
-// ─────────────────────────────
+
 // MOCK EXTERNO (solo axios)
-// ─────────────────────────────
+
 jest.mock("axios");
 
-// ─────────────────────────────
-// MOCK ELASTIC (DAO REAL CONTROLADO)
-// ─────────────────────────────
+
+// MOCK ELASTIC 
+
 jest.mock("../daos/search.dao.js", () => ({
   createIndex: jest.fn(),
   deleteIndex: jest.fn(),
@@ -32,7 +32,7 @@ describe("Search Service - Integration PRO", () => {
   });
 
   // ─────────────────────────────
-  // 1. REINDEX (flujo completo real)
+  // REINDEX 
   // ─────────────────────────────
   it("POST /reindex debe eliminar, crear e indexar productos (LLM mock)", async () => {
 
@@ -47,18 +47,18 @@ describe("Search Service - Integration PRO", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: "Reindexación completa" });
 
-    // 🔥 valida flujo interno completo
+    // valida flujo interno completo
     expect(searchDAO.deleteIndex).toHaveBeenCalled();
     expect(searchDAO.createIndex).toHaveBeenCalled();
     expect(axios.get).toHaveBeenCalled();
 
-    // 🔥 valida que se indexaron todos los productos LLM
+    //  valida que se indexaron todos los productos LLM
     expect(searchDAO.indexProduct).toHaveBeenCalledTimes(llmProducts.length);
   });
 
-  // ─────────────────────────────
-  // 2. SEARCH PRODUCTS (flujo real)
-  // ─────────────────────────────
+  
+  //  SEARCH PRODUCTS 
+
   it("GET /products?q debe buscar productos correctamente", async () => {
 
     const fakeResults = [
@@ -82,9 +82,9 @@ describe("Search Service - Integration PRO", () => {
     expect(searchDAO.searchProducts).toHaveBeenCalledWith("pizza");
   });
 
-  // ─────────────────────────────
-  // 3. SEARCH BY CATEGORY (flujo real)
-  // ─────────────────────────────
+
+  //  SEARCH BY CATEGORY 
+ 
   it("GET /products/category/:categoria debe filtrar correctamente", async () => {
 
     const fakeResults = [
@@ -105,9 +105,9 @@ describe("Search Service - Integration PRO", () => {
     expect(searchDAO.searchByCategory).toHaveBeenCalledWith("Japonesa");
   });
 
-  // ─────────────────────────────
-  // 4. VALIDACIONES (casos negativos)
-  // ─────────────────────────────
+  
+  //  VALIDACIONES 
+
 
   it("GET /products sin query debe retornar 400", async () => {
 

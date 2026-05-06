@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
+import dotenv from 'dotenv'; // lee el archivo .env
 import { keycloak } from '../keycloak/keycloak.js';
 
 dotenv.config();
 
-const config = {
+const config = {// se define todas las configuraciones 
 
   postgres: {
     host: process.env.PG_HOST || 'localhost',

@@ -11,13 +11,13 @@ class PostgresMenuDAO extends MenuDAO {
       WHERE id = $1
     `;
 
-    const menuResult = await pool.query(menuQuery, [id]);
+    const menuResult = await pool.query(menuQuery, [id]); // realiza la query
 
-    if (menuResult.rows.length === 0) {
+    if (menuResult.rows.length === 0) { // si no existe null 
       return null;
     }
 
-    const menu = menuResult.rows[0];
+    const menu = menuResult.rows[0]; // obtiene el menu 
 
     const productsQuery = `
       SELECT id, name, description, price, available,category
@@ -25,9 +25,9 @@ class PostgresMenuDAO extends MenuDAO {
       WHERE menu_id = $1
     `;
 
-    const productsResult = await pool.query(productsQuery, [id]);
+    const productsResult = await pool.query(productsQuery, [id]); //query para obtener los productos del menu 
 
-    menu.products = productsResult.rows;
+    menu.products = productsResult.rows; // agrega los productos 
 
     return menu;
   }
@@ -38,11 +38,11 @@ class PostgresMenuDAO extends MenuDAO {
       UPDATE menus
       SET name = $1
       WHERE id = $2
-      RETURNING id, restaurant_id, name, created_at
-    `;
+      RETURNING id, restaurant_id, name, created_at 
+    `;// devuelve el dato actualizado 
 
     const values = [name, id];
-    const result = await pool.query(query, values);
+    const result = await pool.query(query, values); // ejecuta la query 
 
     if (result.rows.length === 0) {
       return null;
@@ -53,18 +53,18 @@ class PostgresMenuDAO extends MenuDAO {
 
   async deleteMenu(id) {
 
-    await pool.query(`
+    await pool.query(` 
       DELETE FROM order_items
       WHERE product_id IN (
         SELECT id FROM products WHERE menu_id = $1
       )
-    `, [id]);
+    `, [id]);// borra los order itemas que tiene productos del menu que se va a borrar
 
     const result = await pool.query(`
       DELETE FROM menus
       WHERE id = $1
       RETURNING *
-    `, [id]);
+    `, [id]); // borra el menu y lo demas en cascada 
 
     return result.rows[0] || null;
   }
@@ -78,7 +78,7 @@ class PostgresMenuDAO extends MenuDAO {
         category,
         price
       FROM products
-    `;
+    `; // obtiene todos los productos 
 
     const result = await pool.query(query);
 

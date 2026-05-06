@@ -1,4 +1,4 @@
-print("🚀 Inicializando cfgRS (config server)...");
+print("Inicializando cfgRS (config server)...");
 
 rs.initiate({
   _id: "cfgRS",

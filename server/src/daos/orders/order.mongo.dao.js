@@ -7,11 +7,11 @@ class MongoorderDAO extends OrderDAO {
 
     getById = async (id) => {
 
-        const ObjectId = new mongoose.Types.ObjectId(id);
+        const ObjectId = new mongoose.Types.ObjectId(id); // transforma al tipo adecuado
 
-        const order = await Order.findById(ObjectId).lean();
+        const order = await Order.findById(ObjectId).lean(); // busca con el id 
 
-        if (!order) {
+        if (!order) { // si no hay orden regresa nulo 
             return null;
         }
 
@@ -21,10 +21,11 @@ class MongoorderDAO extends OrderDAO {
 
 
     create = async ({ user_id, restaurant_id, reservation_id, items }) => {
+       // convierte los ids 
         const userObjectId = new mongoose.Types.ObjectId(user_id);
         const restaurantObjectId = new mongoose.Types.ObjectId(restaurant_id);
         
-
+        // en caso de que no haya reservacion 
          const reservationObjectId = reservation_id
           ? new mongoose.Types.ObjectId(reservation_id)
           : null;
@@ -38,20 +39,20 @@ class MongoorderDAO extends OrderDAO {
 
         const processedItems = [];
 
-        for (const item of items) {
+        for (const item of items) {// reccorre el array de items 
 
             if (!item.quantity || item.quantity <= 0) {
             throw new Error(`Cantidad inválida para producto ${item.product_id}`);
             }
 
-            const productObjectId = new mongoose.Types.ObjectId(item.product_id);
+            const productObjectId = new mongoose.Types.ObjectId(item.product_id); // convierte el id 
 
-            const menu = await Menu.findOne({
+            const menu = await Menu.findOne({ // busca el producto en el menu 
                 restaurant_id: restaurantObjectId,
                 "products._id": productObjectId
             });
 
-            if (!menu) {
+            if (!menu) { // verifica que sea un producto del restaurante asociado 
             throw new Error(`Producto ${item.product_id} no existe o no pertenece al restaurante`);
             }
 
@@ -63,9 +64,9 @@ class MongoorderDAO extends OrderDAO {
             throw new Error(`Producto ${item.product_id} no disponible`);
             }
 
-            total += product.price * item.quantity;
+            total += product.price * item.quantity; // calculo de total 
 
-            processedItems.push({
+            processedItems.push({ // se guarda los datos de items 
             product_id: product._id,
             name: product.name, //  
             quantity: item.quantity,

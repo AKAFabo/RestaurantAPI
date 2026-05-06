@@ -1,11 +1,10 @@
-// menu.mongo.dao.test.js
-// Pruebas unitarias del DAO de menús para MongoDB
+
 // Mockea el modelo de Mongoose para no depender de una base de datos real
 
 import mongoose from "mongoose";
 import MongoMenuDAO from "../daos/menu/menu.mongo.dao.js";
 
-// Mock del modelo Menu de Mongoose - intercepta todas las operaciones
+// Mock del modelo Menu de Mongoose intercepta todas las operaciones
 jest.mock("../models/menu.Model.js", () => ({
   findById: jest.fn(),
   findByIdAndUpdate: jest.fn(),
@@ -22,9 +21,8 @@ jest.mock("mongoose", () => ({
 
 import Menu from "../models/menu.Model.js";
 
-// ─────────────────────────────────────────────
 // PRUEBAS: getMenuById
-// ─────────────────────────────────────────────
+
 describe("MongoMenuDAO - getMenuById", () => {
 
   beforeEach(() => {
@@ -79,9 +77,9 @@ describe("MongoMenuDAO - getMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: updateMenuById
-// ─────────────────────────────────────────────
+
 describe("MongoMenuDAO - updateMenuById", () => {
 
   beforeEach(() => {
@@ -104,7 +102,7 @@ describe("MongoMenuDAO - updateMenuById", () => {
 
     const result = await MongoMenuDAO.updateMenuById("abc123", "Nuevo nombre");
 
-    // Verifica que se llamó con el id, el nombre y la opción new:true
+    // Verifica que se llamo con el id, el nombre y la opción new:true
     expect(Menu.findByIdAndUpdate).toHaveBeenCalledWith(
     expect.anything(), // ObjectId mockeado
     { name: "Nuevo nombre" },
@@ -137,9 +135,9 @@ describe("MongoMenuDAO - updateMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: deleteMenu
-// ─────────────────────────────────────────────
+
 describe("MongoMenuDAO - deleteMenu", () => {
 
   beforeEach(() => {
@@ -186,9 +184,9 @@ describe("MongoMenuDAO - deleteMenu", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getAllProducts
-// ─────────────────────────────────────────────
+
 describe("MongoMenuDAO - getAllProducts", () => {
 
   beforeEach(() => {

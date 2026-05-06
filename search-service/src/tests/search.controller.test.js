@@ -1,7 +1,4 @@
-import {
-  reindex,
-  searchProducts,
-  searchByCategory
+import {reindex,searchProducts,searchByCategory
 } from "../controller/search.controller.js";
 
 import searchService from "../services/search.service.js";

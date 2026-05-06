@@ -1,4 +1,4 @@
-print("🚀 Configurando sharding...");
+print("Configurando sharding...");
 
 sh.addShard("rsProducts/mongo1:27018,mongo2:27018,mongo3:27018");
 sh.addShard("rsReservations/mongo4:27018,mongo5:27018,mongo6:27018");

@@ -16,7 +16,7 @@ export const getMenuById = async (req,res) =>{
 
     const menu = await menuService.getMenuById(id); // obtener informacion del menu
 
-    if (!menu){
+    if (!menu){ // verfica que exista menu 
         return res.status(404).json({error:"Menu no encontrado"});
     }
 
@@ -37,7 +37,7 @@ export const updateMenubyId = async (req,res) =>{
         // parametros
         const { id} = req.params;
 
-        const {name} = req.body;
+        const {name} = req.body; // lo obtiene del body 
         // validacion del id
     if (!id){
         return res.status(400).json({error:"Id requerido"});

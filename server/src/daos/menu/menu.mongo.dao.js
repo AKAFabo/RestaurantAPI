@@ -4,14 +4,14 @@ import Menu from "../../models/menu.Model.js";
 
 class MongoMenuDAO extends MenuDAO{
 
-    // get menu by id 
+    
     getMenuById = async(id)=>{
-        const objectId = new mongoose.Types.ObjectId(id);
+        const objectId = new mongoose.Types.ObjectId(id);// transforma al tipo correcto
         // buscar el menu
 
-        const menu = await Menu.findById(objectId).lean();
+        const menu = await Menu.findById(objectId).lean(); // busca el menu con el id 
 
-        if(!menu){
+        if(!menu){ // si no hay menu retorna null 
             return null
         }
         
@@ -21,9 +21,9 @@ class MongoMenuDAO extends MenuDAO{
 
     // udpdate del menu 
     updateMenuById = async (id,name) =>{
-        const objectId = new mongoose.Types.ObjectId(id);
+        const objectId = new mongoose.Types.ObjectId(id); // transforma al tipo
 
-        const updateMenu= await Menu.findByIdAndUpdate(
+        const updateMenu= await Menu.findByIdAndUpdate( // le actualiza el nombre 
             objectId,{name},{new:true} // devuelve el menu actualizado
         ).lean();
         if(!updateMenu){
@@ -37,7 +37,7 @@ class MongoMenuDAO extends MenuDAO{
 
     deleteMenu = async (id) => {
 
-        const deletedMenu = await Menu.findByIdAndDelete(id).lean();
+        const deletedMenu = await Menu.findByIdAndDelete(id).lean(); // borra el menu por id 
 
         return deletedMenu || null;
     };
@@ -45,15 +45,15 @@ class MongoMenuDAO extends MenuDAO{
     async getAllProducts() {
 
     // traer todos los menus
-    const menus = await Menu.find().lean();
+    const menus = await Menu.find().lean();// obtiene todos los menus 
 
     let products = [];
 
-    for (const menu of menus) {
+    for (const menu of menus) {// recorre cada menu
 
-      if (!menu.products) continue;
+      if (!menu.products) continue;// verifica si tiene productos
 
-      for (const product of menu.products) {
+      for (const product of menu.products) { // recorre cada menu y obtiene el producto 
 
         products.push({
           id: product._id,
@@ -66,7 +66,7 @@ class MongoMenuDAO extends MenuDAO{
       }
     }
 
-    return products;
+    return products; // retorna el array de productos 
   }
 
 }

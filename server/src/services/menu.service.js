@@ -1,8 +1,9 @@
 class MenuService {
-  constructor(menuDAO) {
+  // inyeccion de dependecias 
+  constructor(menuDAO) { // recibe un dao y lo guarda en la clase 
     this.menuDAO = menuDAO;
   }
-
+  // metodos que delegan al DAO
   async getMenuById(id) {
     return await this.menuDAO.getMenuById(id);
   }

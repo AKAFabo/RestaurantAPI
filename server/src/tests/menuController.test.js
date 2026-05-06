@@ -1,6 +1,4 @@
-// menuController.test.js
-// Pruebas unitarias del controlador de menús
-// Mockea el servicio en lugar del DAO directamente, ya que el controller usa menuService
+
 
 import { getMenuById, updateMenubyId, deleteMenu, getAllProducts } from "../controllers/menuController.js";
 
@@ -17,9 +15,9 @@ jest.mock("../services/config.js", () => ({
 // Importamos el mock para poder configurarlo en cada prueba
 import { menuService } from "../services/config.js";
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getMenuById
-// ─────────────────────────────────────────────
+
 describe("getMenuById", () => {
 
   beforeEach(() => {
@@ -95,9 +93,9 @@ describe("getMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: updateMenubyId
-// ─────────────────────────────────────────────
+
 describe("updateMenubyId", () => {
 
   beforeEach(() => {
@@ -205,9 +203,9 @@ describe("updateMenubyId", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: deleteMenu
-// ─────────────────────────────────────────────
+
 describe("deleteMenu", () => {
 
   beforeEach(() => {
@@ -279,9 +277,9 @@ describe("deleteMenu", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getAllProducts
-// ─────────────────────────────────────────────
+
 describe("getAllProducts", () => {
 
   beforeEach(() => {

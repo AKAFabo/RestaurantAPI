@@ -2,9 +2,9 @@ import axios from "axios";
 import SearchService from "../services/search.service.js";
 import searchDAO from "../daos/search.dao.js";
 
-// ─────────────────────────────
+
 // MOCKS
-// ─────────────────────────────
+
 jest.mock("axios");
 
 jest.mock("../daos/search.dao.js", () => ({
@@ -22,9 +22,9 @@ describe("SearchService", () => {
     process.env.API_URL = "http://fake-api.com";
   });
 
-  // ─────────────────────────────
+
   // reindex
-  // ─────────────────────────────
+  
   it("debe reindexar productos correctamente", async () => {
 
     const fakeProducts = [
@@ -68,9 +68,9 @@ describe("SearchService", () => {
     expect(result).toEqual({ message: "Reindexación completa" });
   });
 
-  // ─────────────────────────────
+ 
   // reindex - error en API
-  // ─────────────────────────────
+ 
   it("debe lanzar error si falla la API", async () => {
 
     axios.get.mockRejectedValue(new Error("API error"));
@@ -78,9 +78,9 @@ describe("SearchService", () => {
     await expect(SearchService.reindex()).rejects.toThrow("API error");
   });
 
-  // ─────────────────────────────
+ 
   // searchProducts
-  // ─────────────────────────────
+  
   it("debe buscar productos por texto", async () => {
 
     const fakeResult = [{ name: "Pizza" }];
@@ -93,9 +93,9 @@ describe("SearchService", () => {
     expect(result).toEqual(fakeResult);
   });
 
-  // ─────────────────────────────
+  
   // searchByCategory
-  // ─────────────────────────────
+  
   it("debe buscar productos por categoría", async () => {
 
     const fakeResult = [{ name: "Refresco", category: "Bebidas" }];

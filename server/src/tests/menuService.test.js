@@ -1,13 +1,12 @@
-// menuService.test.js
-// Pruebas unitarias del MenuService
+
 // Verifica que el service delega correctamente las operaciones al DAO
 // El DAO se inyecta como dependencia, por lo que se mockea manualmente
 
 import MenuService from "../services/menu.service.js";
 
-// ─────────────────────────────────────────────
+
 // SETUP: creamos un DAO falso antes de cada prueba
-// ─────────────────────────────────────────────
+
 
 // Función helper que crea un DAO mock con todos los métodos necesarios
 const createMockDAO = () => ({
@@ -17,7 +16,7 @@ const createMockDAO = () => ({
   getAllProducts: jest.fn(),
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getMenuById
 // ─────────────────────────────────────────────
 describe("MenuService - getMenuById", () => {
@@ -68,9 +67,9 @@ describe("MenuService - getMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: updateMenuById
-// ─────────────────────────────────────────────
+
 describe("MenuService - updateMenuById", () => {
 
   let menuService;
@@ -117,9 +116,9 @@ describe("MenuService - updateMenuById", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: deleteMenu
-// ─────────────────────────────────────────────
+
 describe("MenuService - deleteMenu", () => {
 
   let menuService;
@@ -165,9 +164,9 @@ describe("MenuService - deleteMenu", () => {
 
 });
 
-// ─────────────────────────────────────────────
+
 // PRUEBAS: getAllProducts
-// ─────────────────────────────────────────────
+
 describe("MenuService - getAllProducts", () => {
 
   let menuService;
