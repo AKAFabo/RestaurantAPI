@@ -12,3 +12,5 @@ class RestaurantDAO {
         throw new Error("Method createMenu not implemented");
     }
 }
+
+export default RestaurantDAO;

@@ -1,7 +1,4 @@
 import axios from 'axios';
-
-import userDAO from '../daos/users/user.postgres.dao.js';
-
 import dotenv from 'dotenv';
 import { createKeycloakUser } from '../services/keycloakService.js';
 import { updateKeycloakUser } from '../services/keycloakService.js';
@@ -85,9 +82,9 @@ const userController = {
             }
 
             const userInfo = {
-                email: dbUser.email,
-                name: dbUser.name,
-                id: dbUser.id,
+                email: dbUser.user.email,
+                name: dbUser.user.name,
+                id: dbUser.user.id,
                 roles: token?.realm_access?.roles || [],
             };
 
@@ -114,8 +111,8 @@ const userController = {
             }
 
             // Buscar en Keycloak con el email actual, actualizar con los nuevos datos
-            await updateKeycloakUser(currentUser.email, { email, name, password });
-            const updatedUser = await userDAO.updateUser(id, { email, name, password });
+            await updateKeycloakUser(currentUser.user.email, { email, name, password });
+            const updatedUser = await userService.updateUser(id, { email, name, password });
 
             res.json(updatedUser);
         } catch (error) {
