@@ -26,7 +26,7 @@ const config = {
     clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
   },
   database: {
-  type: process.env.DB || "postgres"
+  type: process.env.DB || "postgres" //Base a utilizar, mongo o postgres
 },
 
   mongo: {

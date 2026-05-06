@@ -22,7 +22,7 @@ app.use(
   })
 );
 
-app.use(keycloak.middleware());
+app.use(keycloak.middleware()); //Uso del middleware de Keycloak para proteger rutas
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec)); // documentacion 
 app.use('/api', routes);
 
@@ -34,6 +34,7 @@ const startServer = async () => {
       console.log(`Health check: http://localhost:${config.server.port}/api/health`);
      // console.log("ENV SECRET:", process.env.KEYCLOAK_CLIENT_SECRET);
     });
+
 
     const gracefulShutdown = () => {
       console.log('Received shutdown signal, closing server gracefully...');
