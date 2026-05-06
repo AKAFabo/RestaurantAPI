@@ -73,7 +73,7 @@ class MongoorderDAO extends OrderDAO {
             });
         }
 
-        //  crear orden (con items embebidos)
+        //  crear orden 
         const order = await Order.create({
         user_id: userObjectId,
         restaurant_id: restaurantObjectId,

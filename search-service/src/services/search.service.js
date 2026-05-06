@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"; // hacer peticiones 
 import searchDAO from "../daos/search.dao.js";
 
 class SearchService {
@@ -7,13 +7,13 @@ class SearchService {
 
     //  borrar índice antes
     await searchDAO.deleteIndex();
-    await searchDAO.createIndex();
+    await searchDAO.createIndex(); // crea otra vez el indice 
 
-    const response = await axios.get(`${process.env.API_URL}/products`);
-    const products = response.data;
+    const response = await axios.get(`${process.env.API_URL}/products`); // llama a la api y trae todos los productos del endpoint 
+    const products = response.data; // deja solo los produsctos 
 
-    for (const product of products) {
-        await searchDAO.indexProduct({
+    for (const product of products) { // recorre todos los productos 
+        await searchDAO.indexProduct({ // se insertan en el indice 
         name: product.name,
         description: product.description || "Producto sin descripción",
         category: product.category
@@ -22,11 +22,11 @@ class SearchService {
 
     return { message: "Reindexación completa" };
     }
-    async searchProducts(q) {
+    async searchProducts(q) { // recibe el producto y llama al dao 
         return await searchDAO.searchProducts(q);
     }
 
-    async searchByCategory(category) {
+    async searchByCategory(category) { // recibe la categoria y llama al dao 
         return await searchDAO.searchByCategory(category);
     }
 }

@@ -1,163 +1,245 @@
-import request from "supertest";
-import app from "../../server.js";
-import { pool } from "../../config/database.js";
-import connectDatabase from "../../config/database.js";
-import dotenv from "dotenv";
+// reservation.integration.test.js
+// Prueba de integración del módulo de reservaciones
+// Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
-dotenv.config({ path: "./src/.env" });
-
-//  MOCK KEYCLOAK
+// ─────────────────────────────────────────────
+// MOCK DE KEYCLOAK - debe ir primero
+// ─────────────────────────────────────────────
 jest.mock("../../keycloak/keycloak.js", () => {
   const session = require("express-session");
-
   return {
-    __esModule: true,
     keycloak: {
-      protect: () => (req, res, next) => {
+      middleware: () => (req, res, next) => {
         req.kauth = {
           grant: {
             access_token: {
               content: {
-                email: "test@mail.com",
-                realm_access: { roles: ["client"] }
+                email: "carlos.mora@lasazontica.com",
+                realm_access: { roles: ["user"] }
               }
             }
           }
         };
         next();
       },
-      middleware: () => (req, res, next) => next()
+      protect: () => (req, res, next) => next()
     },
     memoryStore: new session.MemoryStore()
   };
 });
 
-describe("RESERVATIONS INTEGRATION", () => {
+import request from "supertest";
+import mongoose from "mongoose";
+import { setupDatabase, teardownDatabase } from "./helpers/setupDatabase.js";
+import { seedReservation, clearReservation } from "./seeds/reservation.seed.js";
+import { reservationService } from "../../services/config.js";
 
-  beforeAll(async () => {
-    await connectDatabase();
+const dbType = process.env.DB_TYPE || "mongo";
 
-    //  ROLE 
-    const roleRes = await pool.query(`
-      INSERT INTO roles (name)
-      VALUES ($1)
-      RETURNING id
-    `, [`CLIENT_TEST_${Date.now()}`]);
+let app;
+let pool;
 
-    const roleId = roleRes.rows[0].id;
+// ─────────────────────────────────────────────
+// SETUP
+// ─────────────────────────────────────────────
+beforeAll(async () => {
+  const db = await setupDatabase();
+  pool = db.pool || null;
 
-    //  USER
-    const userRes = await pool.query(`
-      INSERT INTO users (name, email, password_hash, role_id)
-      VALUES ('Test User', 'test@mail.com', 'hash', $1)
-      RETURNING id
-    `, [roleId]);
+  const module = await import("../../server.js");
+  app = module.default;
+});
 
-    const userId = userRes.rows[0].id;
+afterAll(async () => {
+  await teardownDatabase();
+});
 
-    //  RESTAURANT
-    const restaurantRes = await pool.query(`
-      INSERT INTO restaurants (name, address, admin_id)
-      VALUES ('Test Restaurant', 'Address', $1)
-      RETURNING id
-    `, [userId]);
+afterEach(async () => {
+  await clearReservation(pool);
+});
 
-    const restaurantId = restaurantRes.rows[0].id;
+// ─────────────────────────────────────────────
+// HELPER: crea un usuario falso válido para el mock
+// ─────────────────────────────────────────────
+const createFakeUser = (email = "carlos.mora@lasazontica.com") => {
+  const fakeId = new mongoose.Types.ObjectId();
+  return {
+    _id: fakeId,
+    id: fakeId.toString(),
+    email
+  };
+};
 
-    // TABLE 
-    const tableRes = await pool.query(`
-      INSERT INTO tables (restaurant_id, table_number, capacity)
-      VALUES ($1, 1, 4)
-      RETURNING id
-    `, [restaurantId]);
+// ─────────────────────────────────────────────
+// PRUEBAS: POST /api/reservations
+// ─────────────────────────────────────────────
+describe(`POST /api/reservations [${dbType}]`, () => {
 
-    const tableId = tableRes.rows[0].id;
-
-    global.testData = {
-      roleId,
-      userId,
-      restaurantId,
-      tableId,
-      reservationId: null
-    };
+  // Resetea getByEmail a usuario válido antes de cada test
+  beforeEach(() => {
+    reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
   });
 
-  // ==========================
-  //  POST /reservations
-  // ==========================
-  describe("POST /reservations", () => {
+  // Caso exitoso: reserva creada correctamente
+  it("debe retornar 201 con la reserva creada", async () => {
 
-    it("debe crear una reserva correctamente", async () => {
-      const res = await request(app)
-        .post("/api/reservations")
-        .send({ // se envian los datos de prueba 
-          table_id: global.testData.tableId,
-          reservation_time: "2030-01-01 20:00:00",
-          party_size: 2
-        });
+    const { tableId } = await seedReservation(pool);
 
-      //  debug
-      if (res.statusCode !== 201) {
-        console.log("ERROR RESPONSE:", res.body);
-      }
+    const response = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: tableId,
+        reservation_time: "2026-06-01T19:00:00",
+        party_size: 4
+      });
 
-      expect(res.statusCode).toBe(201);
-      expect(res.body.reservation).toBeDefined();
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBe("Reserva creada");
+    expect(response.body.reservation).toBeDefined();
+  });
 
-      global.testData.reservationId = res.body.reservation.id;
+  // Error 400: faltan campos requeridos
+  it("debe retornar 400 si faltan campos requeridos", async () => {
+
+    const response = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: "123"
+        // faltan reservation_time y party_size
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("table_id, reservation_time y party_size son requeridos");
+  });
+
+  // Error 404: usuario no existe en la BD
+  it("debe retornar 404 si el usuario no existe en la BD", async () => {
+
+    const { tableId } = await seedReservation(pool);
+
+    // Sobreescribimos para este test
+    reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(null);
+
+    const response = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: tableId,
+        reservation_time: "2026-06-01T19:00:00",
+        party_size: 4
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe("Usuario no existe en la BD");
+  });
+
+  // Error 500: mesa no existe
+  it("debe retornar 500 si la mesa no existe", async () => {
+
+    const fakeTableId = new mongoose.Types.ObjectId().toString();
+
+    const response = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: fakeTableId,
+        reservation_time: "2026-06-01T19:00:00",
+        party_size: 4
+      });
+
+    expect(response.status).toBe(500);
+  });
+
+});
+
+// ─────────────────────────────────────────────
+// PRUEBAS: DELETE /api/reservations/:id
+// ─────────────────────────────────────────────
+describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
+
+  beforeEach(() => {
+    reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
+  });
+
+  // Caso exitoso: reserva cancelada correctamente
+  it("debe retornar 200 cuando la reserva es cancelada", async () => {
+
+    const { tableId } = await seedReservation(pool);
+
+    // Primero creamos una reserva
+    const createResponse = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: tableId,
+        reservation_time: "2026-06-01T19:00:00",
+        party_size: 4
+      });
+
+    expect(createResponse.status).toBe(201);
+
+    const reservationId = createResponse.body.reservation?._id ||
+                          createResponse.body.reservation?.id;
+
+    // Mockeamos getByEmail con el user_id de la reserva creada
+    reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
+      _id: createResponse.body.reservation.user_id,
+      id: createResponse.body.reservation.user_id,
+      email: "carlos.mora@lasazontica.com"
     });
 
+    // Cancelamos la reserva
+    const response = await request(app)
+      .delete(`/api/reservations/${reservationId}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe("Reserva cancelada correctamente");
   });
 
-  // ==========================
-  //  DELETE /reservations/:id
-  // ==========================
-  describe("DELETE /reservations/:id", () => {
+  // Error 400: falta el id
+  it("debe retornar 404 si la reserva no existe", async () => {
 
-    it("debe cancelar una reserva correctamente", async () => {
-      const res = await request(app)
-        .delete(`/api/reservations/${global.testData.reservationId}`);
+    const fakeId = new mongoose.Types.ObjectId().toString();
 
-      if (res.statusCode !== 200) {
-        console.log("DELETE ERROR:", res.body);
-      }
+    const response = await request(app)
+      .delete(`/api/reservations/${fakeId}`);
 
-      expect(res.statusCode).toBe(200);
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe("Reserva no encontrada");
+  });
+
+  // Error 400: reserva ya cancelada
+  it("debe retornar 400 si la reserva ya está cancelada", async () => {
+
+    const { tableId } = await seedReservation(pool);
+
+    // Creamos una reserva
+    const createResponse = await request(app)
+      .post("/api/reservations")
+      .send({
+        table_id: tableId,
+        reservation_time: "2026-06-01T20:00:00",
+        party_size: 2
+      });
+
+    expect(createResponse.status).toBe(201);
+
+    const reservationId = createResponse.body.reservation?._id ||
+                          createResponse.body.reservation?.id;
+
+    // Mockeamos con el user_id correcto
+    reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
+      _id: createResponse.body.reservation.user_id,
+      id: createResponse.body.reservation.user_id,
+      email: "carlos.mora@lasazontica.com"
     });
 
-  });
+    // Cancelamos la primera vez
+    await request(app).delete(`/api/reservations/${reservationId}`);
 
-  // se borran los datos de prueba 
-  afterAll(async () => {
+    // Intentamos cancelar de nuevo
+    const response = await request(app)
+      .delete(`/api/reservations/${reservationId}`);
 
-    if (global.testData.reservationId) {
-      await pool.query(
-        "DELETE FROM reservations WHERE id = $1",
-        [global.testData.reservationId]
-      );
-    }
-
-    await pool.query(
-      "DELETE FROM tables WHERE id = $1",
-      [global.testData.tableId]
-    );
-
-    await pool.query(
-      "DELETE FROM restaurants WHERE id = $1",
-      [global.testData.restaurantId]
-    );
-
-    await pool.query(
-      "DELETE FROM users WHERE id = $1",
-      [global.testData.userId]
-    );
-
-    await pool.query(
-      "DELETE FROM roles WHERE id = $1",
-      [global.testData.roleId]
-    );
-
-    await pool.end();
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("La reserva ya está cancelada");
   });
 
 });

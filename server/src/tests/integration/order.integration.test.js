@@ -1,216 +1,204 @@
-import request from "supertest";
-import app from "../../server.js";
-import { pool } from "../../config/database.js";
-import connectDatabase from "../../config/database.js";
-import dotenv from "dotenv";
+// order.integration.test.js
+// Prueba de integración del módulo de órdenes
+// Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
-dotenv.config({ path: "./src/.env" });
-
-jest.mock("../../keycloak/keycloak.js", () => { // mock para simular el keycloak , si no ocupa el token real
+// ─────────────────────────────────────────────
+// MOCK DE KEYCLOAK - debe ir primero
+// ─────────────────────────────────────────────
+jest.mock("../../keycloak/keycloak.js", () => {
   const session = require("express-session");
-
   return {
-    __esModule: true,
     keycloak: {
-      protect: () => (req, res, next) => {
-
-        //  usa email dinámico guardado globalmente
-        const email = global.testData?.email || "fallback@test.com";
-
+      middleware: () => (req, res, next) => {
         req.kauth = {
           grant: {
             access_token: {
               content: {
-                email: email,
-                realm_access: { roles: ["client"] }
+                email: "carlos.mora@lasazontica.com",
+                realm_access: { roles: ["user"] }
               }
             }
           }
         };
         next();
       },
-      middleware: () => (req, res, next) => next()
+      protect: () => (req, res, next) => next()
     },
     memoryStore: new session.MemoryStore()
   };
 });
 
+import request from "supertest";
+import mongoose from "mongoose";
+import { setupDatabase, teardownDatabase } from "./helpers/setupDatabase.js";
+import { seedOrder, clearOrder } from "./seeds/order.seed.js";
+import { orderService } from "../../services/config.js";
 
-// ==========================
-// FUNCIONES DE TEST
-// ==========================
+const dbType = process.env.DB_TYPE || "mongo";
 
-function testPostOrder() {
-  describe("POST /orders", () => { // endpoint que se prueba 
+let app;
+let pool;
 
-    it("debe crear un pedido correctamente", async () => {
-      const res = await request(app)
-        .post("/api/orders")
-        .send({ // se le envian los datos de prueba 
-          restaurant_id: global.testData.restaurantId,
-          items: [
-            {
-              product_id: global.testData.productId,
-              quantity: 2
-            }
-          ]
-        });
+// ─────────────────────────────────────────────
+// SETUP
+// ─────────────────────────────────────────────
+beforeAll(async () => {
+  const db = await setupDatabase();
+  pool = db.pool || null;
 
-      expect(res.statusCode).toBe(201); // codigo de exito 
-      expect(res.body.message).toBe("Pedido creado");
-      expect(res.body.order).toBeDefined();
-    });
-
-    it("debe fallar si no hay items", async () => { // provoca el error 
-      const res = await request(app)
-        .post("/api/orders")
-        .send({
-          restaurant_id: global.testData.restaurantId,
-          items: []
-        });
-
-      expect(res.statusCode).toBe(400); // codigo de error 
-    });
-
-  });
-}
-
-function testGetOrder() {
-  describe("GET /orders/:id", () => { // endpoint que se prueba 
-
-    it("debe obtener un pedido correctamente", async () => {
-      const res = await request(app)
-        .get(`/api/orders/${global.testData.orderId}`); // se envia el id 
-
-      expect(res.statusCode).toBe(200); // codigo de exito 
-      expect(res.body.id).toBe(global.testData.orderId);
-    });
-
-    it("debe devolver 404 si no existe", async () => {
-      const res = await request(app)
-        .get("/api/orders/99999"); 
-
-      expect(res.statusCode).toBe(404);// no existe el id 
-    });
-
-  });
-}
-
-
-// ==========================
-// TEST PRINCIPAL
-// ==========================
-
-describe("ORDERS INTEGRATION", () => {
-
-  beforeAll(async () => {
-    await connectDatabase();
-
-    //  datos únicos para evitar duplicados
-    const email = `integration_${Date.now()}@test.com`;
-    const roleName = `CLIENT_${Date.now()}`;
-
-    // ROLE
-    const roleRes = await pool.query(`
-      INSERT INTO roles (name)
-      VALUES ($1)
-      RETURNING id
-    `, [roleName]);
-    const roleId = roleRes.rows[0].id;
-
-    // USER
-    const userRes = await pool.query(`
-      INSERT INTO users (name, email, password_hash, role_id)
-      VALUES ('Test User', $1, 'hash', $2)
-      RETURNING id
-    `, [email, roleId]);
-    const userId = userRes.rows[0].id;
-
-    // RESTAURANT
-    const restaurantRes = await pool.query(`
-      INSERT INTO restaurants (name, address, admin_id)
-      VALUES ('Test Restaurant', 'Address', $1)
-      RETURNING id
-    `, [userId]);
-    const restaurantId = restaurantRes.rows[0].id;
-
-    // MENU
-    const menuRes = await pool.query(`
-      INSERT INTO menus (restaurant_id, name)
-      VALUES ($1, 'Menu Test')
-      RETURNING id
-    `, [restaurantId]);
-    const menuId = menuRes.rows[0].id;
-
-    // PRODUCT
-    const productRes = await pool.query(`
-      INSERT INTO products (menu_id, name, price, available)
-      VALUES ($1, 'Pizza Test', 10.00, true)
-      RETURNING id
-    `, [menuId]);
-    const productId = productRes.rows[0].id;
-
-    // ORDER (para GET)
-    const orderRes = await pool.query(`
-      INSERT INTO orders (user_id, restaurant_id, status, total)
-      VALUES ($1, $2, 'PENDING', 20)
-      RETURNING id
-    `, [userId, restaurantId]);
-
-    const orderId = orderRes.rows[0].id;
-
-    global.testData = {
-      userId,
-      restaurantId,
-      productId,
-      orderId,
-      email,
-      roleId,
-      menuId
-    };
-  });
-
-  // ejecutar tests
-  testPostOrder();
-  testGetOrder();
+  const module = await import("../../server.js");
+  app = module.default;
+});
 
 afterAll(async () => {
-  // borrar los datos que se insertaron en la prueba 
-
-  //  BORRAR TODOS LOS ORDER_ITEMS del producto creado
-  await pool.query(`
-    DELETE FROM order_items 
-    WHERE product_id = $1
-  `, [global.testData.productId]);
-
-  //  BORRAR TODAS LAS ORDENES del usuario de prueba
-  await pool.query(`
-    DELETE FROM orders 
-    WHERE user_id = $1
-  `, [global.testData.userId]);
-
-  
-  await pool.query(`
-    DELETE FROM products WHERE id = $1
-  `, [global.testData.productId]);
-
-  await pool.query(`
-    DELETE FROM menus WHERE id = $1
-  `, [global.testData.menuId]);
-
-  await pool.query(`
-    DELETE FROM restaurants WHERE id = $1
-  `, [global.testData.restaurantId]);
-
-  await pool.query(`
-    DELETE FROM users WHERE id = $1
-  `, [global.testData.userId]);
-
-  await pool.query(`
-    DELETE FROM roles WHERE id = $1
-  `, [global.testData.roleId]);
-
-  await pool.end();
+  await teardownDatabase();
 });
+
+afterEach(async () => {
+  await clearOrder(pool);
+});
+
+// ─────────────────────────────────────────────
+// HELPER: crea un usuario falso válido para el mock
+// ─────────────────────────────────────────────
+const createFakeUser = () => {
+  const fakeId = new mongoose.Types.ObjectId();
+  return {
+    _id: fakeId,
+    id: fakeId.toString(),
+    email: "carlos.mora@lasazontica.com"
+  };
+};
+
+// ─────────────────────────────────────────────
+// PRUEBAS: POST /api/orders
+// ─────────────────────────────────────────────
+describe(`POST /api/orders [${dbType}]`, () => {
+
+  // Antes de cada test reseteamos getByEmail a un usuario válido
+  beforeEach(() => {
+    orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
+  });
+
+  // Caso exitoso: orden creada correctamente
+  it("debe retornar 201 con la orden creada", async () => {
+
+    const { restaurantId, availableProductId } = await seedOrder(pool);
+
+    const response = await request(app)
+      .post("/api/orders")
+      .send({
+        restaurant_id: restaurantId,
+        items: [{ product_id: availableProductId, quantity: 2 }]
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBe("Pedido creado");
+    expect(response.body.order).toBeDefined();
+    expect(response.body.order.status).toBe("PENDING");
+  });
+
+  // Error 400: falta restaurant_id
+  it("debe retornar 400 si falta restaurant_id", async () => {
+
+    const response = await request(app)
+      .post("/api/orders")
+      .send({
+        items: [{ product_id: "123", quantity: 1 }]
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("restaurant_id e items son requeridos");
+  });
+
+  // Error 400: items vacío
+  it("debe retornar 400 si items está vacío", async () => {
+
+    const { restaurantId } = await seedOrder(pool);
+
+    const response = await request(app)
+      .post("/api/orders")
+      .send({
+        restaurant_id: restaurantId,
+        items: []
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("restaurant_id e items son requeridos");
+  });
+
+  // Error 404: usuario no existe en la BD
+  it("debe retornar 404 si el usuario no existe en la BD", async () => {
+
+    const { restaurantId, availableProductId } = await seedOrder(pool);
+
+    // Sobreescribimos el mock para este test específico
+    orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(null);
+
+    const response = await request(app)
+      .post("/api/orders")
+      .send({
+        restaurant_id: restaurantId,
+        items: [{ product_id: availableProductId, quantity: 1 }]
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe("Usuario no existe en la BD");
+  });
+
+});
+
+// ─────────────────────────────────────────────
+// PRUEBAS: GET /api/orders/:id
+// ─────────────────────────────────────────────
+describe(`GET /api/orders/:id [${dbType}]`, () => {
+
+  // Antes de cada test reseteamos getByEmail a un usuario válido
+  beforeEach(() => {
+    orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
+  });
+
+  // Caso exitoso: cliente ve su propia orden
+  it("debe retornar 200 con la orden cuando el cliente es el dueño", async () => {
+
+    const { restaurantId, availableProductId } = await seedOrder(pool);
+
+    // Creamos la orden primero
+    const createResponse = await request(app)
+      .post("/api/orders")
+      .send({
+        restaurant_id: restaurantId,
+        items: [{ product_id: availableProductId, quantity: 1 }]
+      });
+
+    expect(createResponse.status).toBe(201);
+
+    const orderId = createResponse.body.order?._id || createResponse.body.order?.id;
+
+    // Mockeamos getByEmail con el user_id de la orden creada
+    orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
+      _id: createResponse.body.order.user_id,
+      id: createResponse.body.order.user_id,
+      email: "carlos.mora@lasazontica.com"
+    });
+
+    // Consultamos la orden
+    const response = await request(app)
+      .get(`/api/orders/${orderId}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.status).toBe("PENDING");
+  });
+
+  // Error 404: la orden no existe
+  it("debe retornar 404 si la orden no existe", async () => {
+
+    const fakeId = new mongoose.Types.ObjectId().toString();
+
+    const response = await request(app)
+      .get(`/api/orders/${fakeId}`);
+
+    expect(response.status).toBe(404);
+  });
 
 });
