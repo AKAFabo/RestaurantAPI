@@ -1,55 +1,93 @@
-#  Reserva Inteligente de Restaurantes API
+# Reserva Inteligente de Restaurantes API — Etapa 2
+
 # Integrantes
 - Catherin Madriz
-- Fabricio Herrera 
-
-##  Descripción del Proyecto
-API REST desarrollada  para la gestión de reservas en restaurantes. Permite manejar usuarios, autenticación, menús, reservas y pedidos.
-
-Incluye autenticación basada en JWT mediante Keycloak, contenedorización con Docker y pruebas unitarias e integración.
-
-Link de la video demostrando su uso: [Link](https://youtu.be/zRaEEgarBpo)
+- Fabricio Herrera
 
 ---
 
-## Tecnologías Utilizadas
+# Descripción del Proyecto
+
+API REST desarrollada para la gestión de restaurantes, reservas, menús, productos y pedidos.
+
+La arquitectura fue evolucionada hacia un entorno distribuido y escalable utilizando microservicios, balanceo de carga, caché, motor de búsqueda y soporte multi-base de datos.
+
+El sistema permite:
+
+- Gestión de usuarios y autenticación
+- Administración de menús y productos
+- Gestión de reservas y pedidos
+- Búsquedas avanzadas mediante ElasticSearch
+- Cacheo de respuestas frecuentes con Redis
+- Escalabilidad horizontal mediante Docker Compose 
+- Compatibilidad dinámica con PostgreSQL o MongoDB 
+- Replicación y sharding en MongoDB
+- Integración continua y despliegue continuo (CI/CD)
+
+La autenticación se realiza mediante JWT utilizando Keycloak 
+
+---
+
+# Tecnologías Utilizadas
+
+## Backend
 - Node.js
 - Express
+
+## Bases de Datos
 - PostgreSQL
+- MongoDB
+
+## Seguridad
 - Keycloak
+- JWT
+
+## Infraestructura
 - Docker
-- Jest / Supertest
+- Docker Compose
+- Nginx
+
+## Cache y Búsqueda
+- Redis
+- ElasticSearch
+
+## Testing
+- Jest
+- Supertest
+
+## CI/CD
+- GitHub Actions
+
+## Documentación
 - Swagger
 
 ---
 
-## Arquitectura
+## Componentes Principales
+
+- API Principal
+- Microservicio de Búsqueda
+- ElasticSearch
+- Redis
+- PostgreSQL
+- MongoDB Cluster
+- Keycloak
+- Nginx Load Balancer
+
+---
+
+# Arquitectura Lógica
+
 La aplicación sigue una arquitectura en capas:
 
-- **Routes** → Definición de endpoints
-- **Controllers** → Lógica de negocio
-- **Daos** → Comunicación con la base de datos
-- **Database** → Conexión a PostgreSQL
-- **Middleware** → Autenticación con Keycloak
-
----
-
-##  Estructura del Proyecto
-```
-src/
- ├── controllers/
- ├── routes/
- ├── config/
- ├── keycloak/
- ├── tests/
- |__ services/
- ├── db/
- |── docs/
- |── daos/
- └── server,js
-```
-
----
+- Routes → Definición de endpoints
+- Controllers → Manejo de solicitudes HTTP
+- Services → Lógica de negocio
+- DAOs / Repositories → Acceso a datos
+- Database Layer → Conexión dinámica a PostgreSQL o MongoDB
+- Middleware → Autenticación, autorización y caché
+- Search Service → Integración con ElasticSearch
+- Redis Cache → Respuestas frecuentes
 
 ##  Requisitos Previos
 - Node.js instalado
@@ -79,7 +117,7 @@ El cliente obtiene este token JWT tras autenticarse y lo utiliza en cada solicit
 
 ---
 
-##  URL Base
+##  URL Base del api principal 
 ```
 http://localhost:3001/api
 ```
@@ -142,38 +180,28 @@ La API se encuentra contenerizada en el dockerfile
 
 ---
 
-## Docker Compose
+# Compatibilidad PostgreSQL / MongoDB
+
+Para cambiar entre motores de las bases de datos se hace mediante una variable de entorno en el .env
+
+```env
+DB=mongo / postgres
+
+---
+
+
 
 ### Ejecutar servicios
 ```
-docker-compose up -d
-```
+## Levantar el sistema con mongo 
+Se levanta el compose con los 2 sharding y sus respectivas replicas 
+- docker compose --profile full up
 
-### Servicios incluidos:
-- PostgreSQL
-- Adminer
-- Keycloak
-- Dockerfile
+## Escalar servicios manualmente y ver el balanceo
+Se levanta la cantidad de contenedores de la api y del search-service que se indiquen en el comando 
+- docker-compose up --scale api=3 --scale search-service=2
 
----
 
-##  Base de Datos
 
-Se utiliza PostgreSQL como motor de base de datos.
-
-Adminer disponible en:
-```
-http://localhost:1212
-```
-
----
-
-## Notas Finales
-
-- Asegurarse de que Keycloak esté corriendo antes de probar endpoints protegidos
-- Verificar que el token no esté expirado
-- Usar rol adecuado según endpoint
-
----
 
 
