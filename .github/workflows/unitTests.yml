@@ -31,17 +31,5 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run reservationService tests #Logica de reservas
-        run: npx jest src/tests/reservationService.test.js
-
-      - name: Run menuService tests #Logica de menu
-        run: npx jest src/tests/menuService.test.js
-
-      - name: Run orderService tests #Logica de ordenes
-        run: npx jest src/tests/orderService.test.js
-      
-      - name: Run restaurantService tests #Logica de restaurantes
-        run: npx jest src/tests/restaurantService.test.js
-
-      - name: Run userService tests #Logica de usuarios
-        run: npx jest src/tests/userService.test.js
+      - name: Run unit testing 
+        run: npx jest src/tests/unit --coverage
