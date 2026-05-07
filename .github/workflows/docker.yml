@@ -1,0 +1,31 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Convertir nombre del repo a lowercase
+        run: echo "REPO_LC=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Login a GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Construir imagen Docker
+        run: |
+          docker build -t ghcr.io/${{ env.REPO_LC }}/restaurant-app:latest ./server
+
+      - name: Subir imagen al registry
+        run: |
+          docker push ghcr.io/${{ env.REPO_LC }}/restaurant-app:latest
