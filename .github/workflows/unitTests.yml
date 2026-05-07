@@ -39,3 +39,9 @@ jobs:
 
       - name: Run orderService tests #Logica de ordenes
         run: npx jest src/tests/orderService.test.js
+      
+      - name: Run restaurantService tests #Logica de restaurantes
+        run: npx jest src/tests/restaurantService.test.js
+
+      - name: Run userService tests #Logica de usuarios
+        run: npx jest src/tests/userService.test.js
