@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
@@ -8,10 +8,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - name: Clonar repositorio
         uses: actions/checkout@v4
 
+      - name: Login a GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Construir imagen Docker
         run: |
-          docker build -t restaurant-app ./server
+          docker build -t ghcr.io/${{ github.repository }}/restaurant-app:latest ./server
+
+      - name: Subir imagen al registry
+        run: |
+          docker push ghcr.io/${{ github.repository }}/restaurant-app:latest
