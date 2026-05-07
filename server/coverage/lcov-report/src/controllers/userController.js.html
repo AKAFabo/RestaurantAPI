@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">5.26% </span>
+                <span class="strong">8.19% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/57</span>
+                <span class='fraction'>5/61</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">5.26% </span>
+                <span class="strong">8.19% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/57</span>
+                <span class='fraction'>5/61</span>
             </div>
         
             
@@ -199,36 +199,26 @@
 <a name='L134'></a><a href='#L134'>134</a>
 <a name='L135'></a><a href='#L135'>135</a>
 <a name='L136'></a><a href='#L136'>136</a>
-<a name='L137'></a><a href='#L137'>137</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -246,6 +236,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -308,6 +315,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -336,27 +344,29 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axios from 'axios';
-import userDAO from '../daos/users/user.postgres.Dao.js';
 import dotenv from 'dotenv';
+import { createKeycloakUser } from '../services/keycloakService.js';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';
+import { userService } from '../services/config.js';
 &nbsp;
 dotenv.config();
 const KEYCLOAK_URL = process.env.KEYCLOAK_URL || <span class="branch-1 cbranch-no" title="branch not covered" >'http://keycloak:8080';</span>
-&nbsp;
+const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET;
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID;
 &nbsp;
 const userController = {
 &nbsp;
 <span class="fstat-no" title="function not covered" >    as</span>ync getUsers(req, res) {  
 <span class="cstat-no" title="statement not covered" >        try {</span>
-            const users = <span class="cstat-no" title="statement not covered" >await userDAO.getUsers();</span>
+            const users = <span class="cstat-no" title="statement not covered" >await userService.getUsers();</span>
 <span class="cstat-no" title="statement not covered" >            res.json(users);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error fetching users:', error);</span>
 <span class="cstat-no" title="statement not covered" >            res.status(500).json({ error: 'Error fetching users' });</span>
         }
     },
-    
+&nbsp;
 <span class="fstat-no" title="function not covered" >    as</span>ync registerUser(req, res) {
 <span class="cstat-no" title="statement not covered" >        try {</span>
             const { email, name, password } = <span class="cstat-no" title="statement not covered" >req.body;</span>
@@ -365,7 +375,8 @@ const userController = {
 <span class="cstat-no" title="statement not covered" >                return res.status(400).json({ error: 'Email, name and password are required' });</span>
             }
 &nbsp;
-            const newUser = <span class="cstat-no" title="statement not covered" >await userDAO.registerUser({ email, name, password });</span>
+<span class="cstat-no" title="statement not covered" >            await createKeycloakUser({ email, name, password }); </span>// Keycloak user creation
+            const newUser = <span class="cstat-no" title="statement not covered" >await userService.registerUser({ email, name, password });</span>
 <span class="cstat-no" title="statement not covered" >            res.status(201).json(newUser);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error registering user:', error);</span>
@@ -384,8 +395,8 @@ const userController = {
             const response = <span class="cstat-no" title="statement not covered" >await axios.post(</span>
                 `${KEYCLOAK_URL}/realms/restaurant-realm/protocol/openid-connect/token`,
                 new URLSearchParams({
-                    client_id: 'restaurant-api',
-                    client_secret: process.env.KEYCLOAK_CLIENT_SECRET,
+                    client_id: KEYCLOAK_CLIENT_ID,
+                    client_secret: KEYCLOAK_CLIENT_SECRET,
                     grant_type: 'password',
                     username: email,
                     password: password,
@@ -408,16 +419,16 @@ const userController = {
 <span class="cstat-no" title="statement not covered" >        try {  </span>
             const token = <span class="cstat-no" title="statement not covered" >req.kauth?.grant?.access_token?.content;</span>
             const email = <span class="cstat-no" title="statement not covered" >token?.email;</span>
-            const dbUser = <span class="cstat-no" title="statement not covered" >await userDAO.getByEmail(email);</span>
+            const dbUser = <span class="cstat-no" title="statement not covered" >await userService.getByEmail(email);</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            if (!dbUser) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(404).json({ error: 'User not found in database' });</span>
             }
 &nbsp;
             const userInfo = <span class="cstat-no" title="statement not covered" >{</span>
-                email: dbUser.email,
-                name: dbUser.name,
-                id: dbUser.id,
+                email: dbUser.user.email,
+                name: dbUser.user.name,
+                id: dbUser.user.id,
                 roles: token?.realm_access?.roles || [],
             };
 &nbsp;
@@ -438,14 +449,15 @@ const userController = {
             }
 &nbsp;
             // Obtener el email actual del usuario desde PostgreSQL
-            const currentUser = <span class="cstat-no" title="statement not covered" >await userDAO.getUserById(id);</span>
+            const currentUser = <span class="cstat-no" title="statement not covered" >await userService.getUserById(id);</span>
 <span class="cstat-no" title="statement not covered" >            if (!currentUser) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(404).json({ error: 'User not found' });</span>
             }
 &nbsp;
             // Buscar en Keycloak con el email actual, actualizar con los nuevos datos
-<span class="cstat-no" title="statement not covered" >            await updateKeycloakUser(currentUser.email, { email, name, password });</span>
-            const updatedUser = <span class="cstat-no" title="statement not covered" >await userDAO.updateUser(id, { email, name, password });</span>
+<span class="cstat-no" title="statement not covered" >            console.log(currentUser.user.email)</span>
+<span class="cstat-no" title="statement not covered" >            await updateKeycloakUser(currentUser.user.email, { email, name, password });</span>
+            const updatedUser = <span class="cstat-no" title="statement not covered" >await userService.updateUser(id, { email, name, password });</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            res.json(updatedUser);</span>
         } catch (error) {
@@ -457,12 +469,12 @@ const userController = {
 <span class="fstat-no" title="function not covered" >    as</span>ync deleteUser(req, res) {
 <span class="cstat-no" title="statement not covered" >        try {</span>
             const { id } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-            const user = <span class="cstat-no" title="statement not covered" >await userDAO.getUserById(id);</span>
+            const user = <span class="cstat-no" title="statement not covered" >await userService.getUserById(id);</span>
 <span class="cstat-no" title="statement not covered" >            if (!user) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(404).json({ error: 'User not found' });</span>
             }
-<span class="cstat-no" title="statement not covered" >            await deleteKeycloakUser(user.email); </span>// Eliminar usuario de Keycloak
-<span class="cstat-no" title="statement not covered" >            await userDAO.deleteUser(id);</span>
+<span class="cstat-no" title="statement not covered" >            await deleteKeycloakUser(user.user.email); </span>// Eliminar usuario de Keycloak
+<span class="cstat-no" title="statement not covered" >            await userService.deleteUser(id);</span>
 <span class="cstat-no" title="statement not covered" >            res.status(204).send();</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error deleting user:', error);</span>
@@ -478,7 +490,7 @@ export default userController;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-04T23:03:35.117Z
+                at 2026-05-07T22:40:20.220Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

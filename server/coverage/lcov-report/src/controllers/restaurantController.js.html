@@ -124,14 +124,23 @@
 <a name='L59'></a><a href='#L59'>59</a>
 <a name='L60'></a><a href='#L60'>60</a>
 <a name='L61'></a><a href='#L61'>61</a>
-<a name='L62'></a><a href='#L62'>62</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -144,6 +153,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -187,8 +197,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import axios from "axios";
 import dotenv from 'dotenv';
-import userDAO from '../daos/users/user.postgres.Dao.js';
-import restaurantDAO from '../daos/restaurant/restaurant.postgres.Dao.js';
+&nbsp;
+import userDAO from '../daos/users/user.postgres.dao.js';
+import { userService } from "../services/config.js";
+import { restaurantService } from "../services/config.js";
+//import restaurantDAO from '../daos/restaurantDao.js';
+&nbsp;
 &nbsp;
 dotenv.config();
 &nbsp;
@@ -196,7 +210,7 @@ const restaurantController = {
 &nbsp;
 <span class="fstat-no" title="function not covered" >    as</span>ync createRestaurant(req, res) {
 <span class="cstat-no" title="statement not covered" >        try {</span>
-            const { name, address, phone } = <span class="cstat-no" title="statement not covered" >req.body;</span>
+            const { name, address, phone, tables } = <span class="cstat-no" title="statement not covered" >req.body;</span>
 &nbsp;
             // Validar primero
 <span class="cstat-no" title="statement not covered" >            if (!name || !address || !phone) {</span>
@@ -205,14 +219,15 @@ const restaurantController = {
 &nbsp;
             const token = <span class="cstat-no" title="statement not covered" >req.kauth?.grant?.access_token?.content;</span>
             const email = <span class="cstat-no" title="statement not covered" >token?.email;</span>
-<span class="cstat-no" title="statement not covered" >            console.log('Token email:', email);</span>
-            const dbUser = <span class="cstat-no" title="statement not covered" >await userDAO.getByEmail(email);</span>
+            //console.log('Token email:', email);
+            const dbUser = <span class="cstat-no" title="statement not covered" >await userService.getByEmail(email);</span>
+<span class="cstat-no" title="statement not covered" >            console.log('ID: ', dbUser.user.id)</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >            if (!dbUser) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(404).json({ error: 'User not found' });</span>
             }
 &nbsp;
-            const newRestaurant = <span class="cstat-no" title="statement not covered" >await restaurantDAO.createRestaurant({ name, address, phone, admin_id: dbUser.id });</span>
+            const newRestaurant = <span class="cstat-no" title="statement not covered" >await restaurantService.createRestaurant({ name, address, phone, admin_id: dbUser.user.id, tables });</span>
 <span class="cstat-no" title="statement not covered" >            res.status(201).json(newRestaurant);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error creating restaurant:', error);</span>
@@ -222,7 +237,7 @@ const restaurantController = {
       
 <span class="fstat-no" title="function not covered" >    as</span>ync getRestaurants(req, res) {
 <span class="cstat-no" title="statement not covered" >        try {</span>
-            const restaurants = <span class="cstat-no" title="statement not covered" >await restaurantDAO.getRestaurants();</span>
+            const restaurants = <span class="cstat-no" title="statement not covered" >await restaurantService.getRestaurants();</span>
 <span class="cstat-no" title="statement not covered" >            res.json(restaurants);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error fetching restaurants:', error);</span>
@@ -233,11 +248,11 @@ const restaurantController = {
 <span class="fstat-no" title="function not covered" >    as</span>ync createMenu(req, res) {
 <span class="cstat-no" title="statement not covered" >        try {</span>
             const { restaurantId } = <span class="cstat-no" title="statement not covered" >req.params;</span>
-            const { name } = <span class="cstat-no" title="statement not covered" >req.body;</span>
+            const { name, products } = <span class="cstat-no" title="statement not covered" >req.body;</span>
 <span class="cstat-no" title="statement not covered" >            if (!name) {</span>
 <span class="cstat-no" title="statement not covered" >                return res.status(400).json({ error: 'Menu name is required' });</span>
             }
-            const newMenu = <span class="cstat-no" title="statement not covered" >await restaurantDAO.createMenu(restaurantId, { name });</span>
+            const newMenu = <span class="cstat-no" title="statement not covered" >await restaurantService.createMenu(restaurantId, { name, products });</span>
 <span class="cstat-no" title="statement not covered" >            res.status(201).json(newMenu);</span>
         } catch (error) {
 <span class="cstat-no" title="statement not covered" >            console.error('Error creating menu:', error);</span>
@@ -253,7 +268,7 @@ export default restaurantController;</pre></td></tr></table></pre>
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-04T23:03:35.117Z
+                at 2026-05-07T22:40:20.220Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
