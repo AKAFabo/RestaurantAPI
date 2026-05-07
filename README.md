@@ -201,7 +201,9 @@ Se levanta el compose con los 2 sharding y sus respectivas replicas
 Se levanta la cantidad de contenedores de la api y del search-service que se indiquen en el comando 
 - docker-compose up --scale api=3 --scale search-service=2
 
-
+## Servicio completo 
+Si se quiere levantar el mongo con sharding y tambien varias instancias de los microservicios 
+- docker-compose --profile full up --build --scale app=3 --scale search-service=2 
 
 
 
