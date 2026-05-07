@@ -35,7 +35,7 @@ jobs:
         run: npx jest src/tests/unit --coverage
       
       - name: Run integration testing
-        run: npx jest src/tests/integration --coverage
+        run: npx jest src/tests/integration
       
 
 
