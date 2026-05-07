@@ -159,13 +159,19 @@ http://localhost:3001/api
 ##  URL del search-service
 ```
 http://localhost:4000/search 
+```
+
 
 --- 
 
 ## URL principal del sistema 
+```
+
 http://localhost/search/? 
 
 http://localhost/api/?
+
+``` 
 
 ## Swagger
 Documentación disponible en:
@@ -203,11 +209,6 @@ Para cambiar entre motores de las bases de datos se hace mediante una variable d
 
 ```env
 DB=mongo / postgres
-
----
-
-
-
 
 ```
 ## Levantar el sistema con mongo 
