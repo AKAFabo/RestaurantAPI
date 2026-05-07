@@ -2,7 +2,7 @@
 // Pruebas unitarias del ReservationService
 // Verifica la lógica de negocio: validaciones, permisos y delegación al DAO
 
-import ReservationService from "../services/reservation.service.js";
+import ReservationService from "../../services/reservation.service.js";
 
 // ─────────────────────────────────────────────
 // SETUP: creamos un DAO falso antes de cada prueba
