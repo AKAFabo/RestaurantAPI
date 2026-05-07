@@ -3,8 +3,7 @@ import dotenv from 'dotenv';
 import { createKeycloakUser } from '../services/keycloakService.js';
 import { updateKeycloakUser } from '../services/keycloakService.js';
 import { deleteKeycloakUser } from '../services/keycloakService.js';
-import { userService } from '../services/config.js'
-
+import { userService } from '../services/config.js';
 
 dotenv.config();
 const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'http://keycloak:8080';
@@ -129,8 +128,8 @@ const userController = {
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
-            await deleteKeycloakUser(user.email); // Eliminar usuario de Keycloak
-            await userDAO.deleteUser(id);
+            await deleteKeycloakUser(user.user.email); // Eliminar usuario de Keycloak
+            await userService.deleteUser(id);
             res.status(204).send();
         } catch (error) {
             console.error('Error deleting user:', error);

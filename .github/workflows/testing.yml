@@ -1,4 +1,4 @@
-name: Unit Testing
+name: Testing
 
 on:
   push:
@@ -33,3 +33,9 @@ jobs:
 
       - name: Run unit testing 
         run: npx jest src/tests/unit --coverage
+      
+      - name: Run integration testing
+        run: npx jest src/tests/integration --coverage
+      
+
+

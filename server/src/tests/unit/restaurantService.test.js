@@ -50,7 +50,7 @@ describe("RestaurantService - createRestaurant", () => {
       address: "San José",
       phone: "8888-8888",
       admin_id: 5,
-      tables: [] // 👈 nuevo
+      tables: [] 
     });
 
     expect(mockRestaurantDAO.createRestaurant).toHaveBeenCalledWith({
