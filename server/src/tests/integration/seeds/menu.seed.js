@@ -1,6 +1,3 @@
-// menu.seed.js
-// Seed unificado para pruebas de integración del módulo de menú
-// Detecta el motor activo y usa la estructura correcta
 
 import mongoose from "mongoose";
 

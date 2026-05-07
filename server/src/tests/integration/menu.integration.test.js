@@ -1,6 +1,3 @@
-// menu.integration.test.js
-// Prueba de integración del módulo de menú
-// Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
 process.env.DB = "mongo";
 process.env.DB_TYPE = "mongo";
@@ -17,17 +14,17 @@ let mongoServer;
 
 beforeAll(async () => {
 
-  // PASO 1: Levantar MongoDB en memoria PRIMERO
+  // Levantar MongoDB en memoria PRIMERO
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
 
-  // PASO 2: Sobreescribir MONGO_URI para que el DAO use esta BD
+  //  Sobreescribir MONGO_URI para que el DAO use esta BD
   process.env.MONGO_URI = uri;
 
-  // PASO 3: Conectar mongoose al memory server
+  //  Conectar mongoose al memory server
   await mongoose.connect(uri);
 
-  // PASO 4: Mockear módulos que no queremos que corran real
+  // Mockear módulos que no queremos que corran real
   jest.mock("../../keycloak/keycloak.js", () => {
     const session = require("express-session");
     return {
@@ -62,7 +59,7 @@ beforeAll(async () => {
     invalidateOrdersCache: jest.fn().mockResolvedValue(null),
   }));
 
-  // PASO 5: Mockear connectDatabase para que NO reconecte
+  //  Mockear connectDatabase para que NO reconecte
   // Usamos la conexión que ya levantamos arriba
   jest.mock("../../config/database.js", () => ({
     __esModule: true,
@@ -77,11 +74,11 @@ beforeAll(async () => {
     getDatabaseStatus: jest.fn().mockReturnValue("connected")
   }));
 
-  // PASO 6: Importar el app DESPUÉS de todos los mocks y la BD
+  //  Importar el app DESPUÉS de todos los mocks y la BD
   const module = await import("../../server.js");
   app = module.default;
 
-  // PASO 7: Inyectar usuario autenticado
+  //  Inyectar usuario autenticado
   app.use((req, res, next) => {
     req.kauth = {
       grant: {

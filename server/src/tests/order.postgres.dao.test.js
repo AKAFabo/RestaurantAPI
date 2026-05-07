@@ -1,6 +1,4 @@
-// order.postgres.dao.test.js
-// Pruebas unitarias del DAO de órdenes para PostgreSQL
-// Mockea el pool y el cliente de transacción para no depender de BD real
+
 
 import PostgresOrderDAO from "../daos/orders/order.postgres.dao.js";
 import { pool } from "../config/database.js";

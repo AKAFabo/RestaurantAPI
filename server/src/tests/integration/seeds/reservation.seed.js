@@ -1,6 +1,3 @@
-// reservation.seed.js
-// Datos de prueba realistas generados con LLM para pruebas de integración de reservaciones
-// Detecta el motor activo y usa la estructura correcta
 
 import mongoose from "mongoose";
 
