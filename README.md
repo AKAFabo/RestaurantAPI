@@ -8,7 +8,7 @@
 
 # Descripción del Proyecto
 
-API REST desarrollada para la gestión de restaurantes, reservas, menús, productos y pedidos.
+API REST desarrollada para la gestión de restaurantes, reservas, menús, productos y pedidos..
 
 La arquitectura fue evolucionada hacia un entorno distribuido y escalable utilizando microservicios, balanceo de carga, caché, motor de búsqueda y soporte multi-base de datos.
 
