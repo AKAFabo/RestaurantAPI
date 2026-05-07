@@ -1,16 +1,12 @@
 // restaurantService.test.js
-// Pruebas unitarias del RestaurantService
-// Verifica lógica de negocio y uso de cache
 
 import RestaurantService from "../../services/restaurant.service.js";
 import { invalidateRestaurantsCache } from "../../middlewares/cacheHelper.js";
-
 
 // Mock del helper de cache
 jest.mock("../../middlewares/cacheHelper.js", () => ({
   invalidateRestaurantsCache: jest.fn(),
 }));
-
 
 // ─────────────────────────────────────────────
 // SETUP: DAO falso
@@ -22,7 +18,6 @@ const createMockRestaurantDAO = () => ({
   createMenu: jest.fn(),
 });
 
-
 // ─────────────────────────────────────────────
 // PRUEBAS: createRestaurant
 // ─────────────────────────────────────────────
@@ -33,19 +28,12 @@ describe("RestaurantService - createRestaurant", () => {
   let mockRestaurantDAO;
 
   beforeEach(() => {
-
     mockRestaurantDAO = createMockRestaurantDAO();
-
-    // Inyección de dependencias
-    restaurantService = new RestaurantService(
-      mockRestaurantDAO
-    );
-
+    restaurantService = new RestaurantService(mockRestaurantDAO);
     jest.clearAllMocks();
   });
 
-  // Caso exitoso
-  it("debe crear un restaurante correctamente", async () => {
+  it("debe crear un restaurante correctamente (sin mesas)", async () => {
 
     const fakeRestaurant = {
       id: 1,
@@ -55,37 +43,70 @@ describe("RestaurantService - createRestaurant", () => {
       admin_id: 5
     };
 
-    mockRestaurantDAO.createRestaurant
-      .mockResolvedValue(fakeRestaurant);
+    mockRestaurantDAO.createRestaurant.mockResolvedValue(fakeRestaurant);
 
     const result = await restaurantService.createRestaurant({
       name: "Pizza Hub",
       address: "San José",
       phone: "8888-8888",
-      admin_id: 5
+      admin_id: 5,
+      tables: [] // 👈 nuevo
     });
 
-    // Verifica llamada al DAO
-    expect(mockRestaurantDAO.createRestaurant)
-      .toHaveBeenCalledWith({
-        name: "Pizza Hub",
-        address: "San José",
-        phone: "8888-8888",
-        admin_id: 5
-      });
+    expect(mockRestaurantDAO.createRestaurant).toHaveBeenCalledWith({
+      name: "Pizza Hub",
+      address: "San José",
+      phone: "8888-8888",
+      admin_id: 5,
+      tables: []
+    });
 
-    // Verifica invalidación de cache
-    expect(invalidateRestaurantsCache)
-      .toHaveBeenCalled();
+    expect(invalidateRestaurantsCache).toHaveBeenCalled();
 
-    // Resultado esperado
     expect(result).toEqual({
       restaurant: fakeRestaurant
     });
   });
 
-  // Caso: error inesperado
-  it("debe propagar el error si el DAO falla", async () => {
+  it("debe crear un restaurante con mesas", async () => {
+
+    const fakeRestaurant = {
+      id: 1,
+      name: "Pizza Hub",
+      admin_id: 5
+    };
+
+    const tables = [
+      { table_number: 1, capacity: 2 },
+      { table_number: 2, capacity: 4 }
+    ];
+
+    mockRestaurantDAO.createRestaurant.mockResolvedValue(fakeRestaurant);
+
+    const result = await restaurantService.createRestaurant({
+      name: "Pizza Hub",
+      address: "San José",
+      phone: "8888-8888",
+      admin_id: 5,
+      tables
+    });
+
+    expect(mockRestaurantDAO.createRestaurant).toHaveBeenCalledWith({
+      name: "Pizza Hub",
+      address: "San José",
+      phone: "8888-8888",
+      admin_id: 5,
+      tables
+    });
+
+    expect(invalidateRestaurantsCache).toHaveBeenCalled();
+
+    expect(result).toEqual({
+      restaurant: fakeRestaurant
+    });
+  });
+
+  it("debe propagar error si el DAO falla", async () => {
 
     mockRestaurantDAO.createRestaurant
       .mockRejectedValue(new Error("DB error"));
@@ -95,17 +116,15 @@ describe("RestaurantService - createRestaurant", () => {
         name: "Pizza Hub",
         address: "San José",
         phone: "8888-8888",
-        admin_id: 5
+        admin_id: 5,
+        tables: []
       })
     ).rejects.toThrow("DB error");
 
-    // No debe invalidar cache
-    expect(invalidateRestaurantsCache)
-      .not.toHaveBeenCalled();
+    expect(invalidateRestaurantsCache).not.toHaveBeenCalled();
   });
 
 });
-
 
 // ─────────────────────────────────────────────
 // PRUEBAS: getRestaurants
@@ -117,47 +136,30 @@ describe("RestaurantService - getRestaurants", () => {
   let mockRestaurantDAO;
 
   beforeEach(() => {
-
     mockRestaurantDAO = createMockRestaurantDAO();
-
-    restaurantService = new RestaurantService(
-      mockRestaurantDAO
-    );
-
+    restaurantService = new RestaurantService(mockRestaurantDAO);
     jest.clearAllMocks();
   });
 
-  // Caso exitoso
   it("debe retornar todos los restaurantes", async () => {
 
     const fakeRestaurants = [
-      {
-        id: 1,
-        name: "Pizza Hub"
-      },
-      {
-        id: 2,
-        name: "Burger House"
-      }
+      { id: 1, name: "Pizza Hub" },
+      { id: 2, name: "Burger House" }
     ];
 
-    mockRestaurantDAO.getRestaurants
-      .mockResolvedValue(fakeRestaurants);
+    mockRestaurantDAO.getRestaurants.mockResolvedValue(fakeRestaurants);
 
     const result = await restaurantService.getRestaurants();
 
-    // Verifica llamada al DAO
-    expect(mockRestaurantDAO.getRestaurants)
-      .toHaveBeenCalled();
+    expect(mockRestaurantDAO.getRestaurants).toHaveBeenCalled();
 
-    // Resultado esperado
     expect(result).toEqual({
       restaurants: fakeRestaurants
     });
   });
 
-  // Caso: error inesperado
-  it("debe propagar el error si el DAO falla", async () => {
+  it("debe propagar error si el DAO falla", async () => {
 
     mockRestaurantDAO.getRestaurants
       .mockRejectedValue(new Error("DB error"));
@@ -169,7 +171,6 @@ describe("RestaurantService - getRestaurants", () => {
 
 });
 
-
 // ─────────────────────────────────────────────
 // PRUEBAS: createMenu
 // ─────────────────────────────────────────────
@@ -180,18 +181,12 @@ describe("RestaurantService - createMenu", () => {
   let mockRestaurantDAO;
 
   beforeEach(() => {
-
     mockRestaurantDAO = createMockRestaurantDAO();
-
-    restaurantService = new RestaurantService(
-      mockRestaurantDAO
-    );
-
+    restaurantService = new RestaurantService(mockRestaurantDAO);
     jest.clearAllMocks();
   });
 
-  // Caso exitoso
-  it("debe crear un menú correctamente", async () => {
+  it("debe crear un menú correctamente (sin productos)", async () => {
 
     const fakeMenu = {
       id: 1,
@@ -199,33 +194,62 @@ describe("RestaurantService - createMenu", () => {
       name: "Menú Ejecutivo"
     };
 
-    mockRestaurantDAO.createMenu
-      .mockResolvedValue(fakeMenu);
+    mockRestaurantDAO.createMenu.mockResolvedValue(fakeMenu);
 
     const result = await restaurantService.createMenu(
       5,
-      { name: "Menú Ejecutivo" }
+      { name: "Menú Ejecutivo", products: [] }
     );
 
-    // Verifica llamada al DAO
-    expect(mockRestaurantDAO.createMenu)
-      .toHaveBeenCalledWith(
-        5,
-        { name: "Menú Ejecutivo" }
-      );
+    expect(mockRestaurantDAO.createMenu).toHaveBeenCalledWith(
+      5,
+      { name: "Menú Ejecutivo", products: [] }
+    );
 
-    // Verifica invalidación de cache
-    expect(invalidateRestaurantsCache)
-      .toHaveBeenCalled();
+    expect(invalidateRestaurantsCache).toHaveBeenCalled();
 
-    // Resultado esperado
     expect(result).toEqual({
       menu: fakeMenu
     });
   });
 
-  // Caso: error inesperado
-  it("debe propagar el error si el DAO falla", async () => {
+  it("debe crear un menú con productos", async () => {
+
+    const fakeMenu = {
+      id: 1,
+      restaurant_id: 5,
+      name: "Menú Pizzas"
+    };
+
+    const products = [
+      {
+        name: "Pizza",
+        category: "Comida",
+        price: 5000,
+        available: true
+      }
+    ];
+
+    mockRestaurantDAO.createMenu.mockResolvedValue(fakeMenu);
+
+    const result = await restaurantService.createMenu(
+      5,
+      { name: "Menú Pizzas", products }
+    );
+
+    expect(mockRestaurantDAO.createMenu).toHaveBeenCalledWith(
+      5,
+      { name: "Menú Pizzas", products }
+    );
+
+    expect(invalidateRestaurantsCache).toHaveBeenCalled();
+
+    expect(result).toEqual({
+      menu: fakeMenu
+    });
+  });
+
+  it("debe propagar error si el DAO falla", async () => {
 
     mockRestaurantDAO.createMenu
       .mockRejectedValue(new Error("DB error"));
@@ -233,13 +257,11 @@ describe("RestaurantService - createMenu", () => {
     await expect(
       restaurantService.createMenu(
         5,
-        { name: "Menú Ejecutivo" }
+        { name: "Menú Ejecutivo", products: [] }
       )
     ).rejects.toThrow("DB error");
 
-    // No debe invalidar cache
-    expect(invalidateRestaurantsCache)
-      .not.toHaveBeenCalled();
+    expect(invalidateRestaurantsCache).not.toHaveBeenCalled();
   });
 
 });
