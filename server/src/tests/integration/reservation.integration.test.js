@@ -1,13 +1,8 @@
-// reservation.integration.test.js
-// Prueba de integración del módulo de reservaciones
-// Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
 process.env.DB = "mongo";
 process.env.DB_TYPE = "mongo";
 
-// ─────────────────────────────────────────────
-// MOCKS - deben ir antes de cualquier import
-// ─────────────────────────────────────────────
+
 jest.mock("../../keycloak/keycloak.js", () => {
   const session = require("express-session");
   return {
@@ -82,17 +77,17 @@ let mongoServer;
 // ─────────────────────────────────────────────
 beforeAll(async () => {
 
-  // PASO 1: Levantar MongoDB en memoria
+  // Levantar MongoDB en memoria
   mongoServer = await MongoMemoryServer.create();
   const uri = mongoServer.getUri();
   process.env.MONGO_URI = uri;
   await mongoose.connect(uri);
 
-  // PASO 2: Importar app después de conectar BD
+  //  Importar app después de conectar BD
   const module = await import("../../server.js");
   app = module.default;
 
-  // PASO 3: Inyectar usuario autenticado
+  // Inyectar usuario autenticado
   app.use((req, res, next) => {
     req.kauth = {
       grant: {

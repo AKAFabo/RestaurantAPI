@@ -1,6 +1,4 @@
-// orderController.test.js
-// Pruebas unitarias del controlador de órdenes
-// Mockea el orderService ya que el controller depende de él
+
 
 import { createOrder, getOrderById } from "../controllers/orderController.js";
 
