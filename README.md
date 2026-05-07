@@ -207,21 +207,25 @@ La API se encuentra contenerizada en el dockerfile
 
 Para cambiar entre motores de las bases de datos se hace mediante una variable de entorno en el .env
 
-```env
+```
 DB=mongo / postgres
 
 ```
 ## Levantar el sistema con mongo 
 Se levanta el compose con los 2 sharding y sus respectivas replicas 
-- docker compose --profile full up
+```
+docker compose --profile full up
+```
 
 ## Escalar servicios manualmente y ver el balanceo
 Se levanta la cantidad de contenedores de la api y del search-service que se indiquen en el comando 
-- docker-compose up --scale api=3 --scale search-service=2
-
+```
+ docker-compose up --scale api=3 --scale search-service=2
+```
 ## Servicio completo 
 Si se quiere levantar el mongo con sharding y tambien varias instancias de los microservicios 
-- docker-compose --profile full up --build --scale app=3 --scale search-service=2 
-
+```
+docker-compose --profile full up --build --scale app=3 --scale search-service=2 
+```
 
 
