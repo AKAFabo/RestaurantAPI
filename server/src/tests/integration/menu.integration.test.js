@@ -1,49 +1,87 @@
 // menu.integration.test.js
 // Prueba de integración del módulo de menú
 // Flujo completo: request HTTP → controller → service → DAO → BD en memoria
-// Detecta DB_TYPE para usar Mongo o PostgreSQL automáticamente
 
-// ─────────────────────────────────────────────
-// MOCK DE KEYCLOAK - debe ir primero
-// ─────────────────────────────────────────────
-// DESPUÉS
-jest.mock("../../keycloak/keycloak.js", () => {
-  const session = require("express-session");
-  const memoryStore = new session.MemoryStore();
-  return {
-    keycloak: {
-      middleware: () => (req, res, next) => next(),
-      protect: () => (req, res, next) => next()
-    },
-    memoryStore
-  };
-});
+process.env.DB = "mongo";
+process.env.DB_TYPE = "mongo";
 
-import request from "supertest";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import mongoose from "mongoose";
-import { setupDatabase, teardownDatabase, getPool } from "./helpers/setupDatabase.js";
+import request from "supertest";
 import { seedMenu, clearMenu } from "./seeds/menu.seed.js";
 import { mockAdminUser } from "./helpers/mockKeycloak.js";
 
-const dbType = process.env.DB_TYPE || "postgres";
-
+const dbType = "mongo";
 let app;
-let pool;
+let mongoServer;
 
-// ─────────────────────────────────────────────
-// SETUP
-// ─────────────────────────────────────────────
 beforeAll(async () => {
 
-  // Levanta la BD correcta según DB_TYPE
-  const db = await setupDatabase();
-  pool = db.pool || null;
+  // PASO 1: Levantar MongoDB en memoria PRIMERO
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
 
-  // Importa el app después de configurar la BD
+  // PASO 2: Sobreescribir MONGO_URI para que el DAO use esta BD
+  process.env.MONGO_URI = uri;
+
+  // PASO 3: Conectar mongoose al memory server
+  await mongoose.connect(uri);
+
+  // PASO 4: Mockear módulos que no queremos que corran real
+  jest.mock("../../keycloak/keycloak.js", () => {
+    const session = require("express-session");
+    return {
+      keycloak: {
+        middleware: () => (req, res, next) => next(),
+        protect: () => (req, res, next) => next()
+      },
+      memoryStore: new session.MemoryStore()
+    };
+  });
+
+  jest.mock("../../config/redis.js", () => ({
+    default: {
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(null),
+      del: jest.fn().mockResolvedValue(null),
+      keys: jest.fn().mockResolvedValue([]),
+      connect: jest.fn().mockResolvedValue(null),
+      on: jest.fn()
+    }
+  }));
+
+  jest.mock("../../middlewares/cache.js", () => ({
+    cache: () => (req, res, next) => next()
+  }));
+
+  jest.mock("../../middlewares/cacheHelper.js", () => ({
+    invalidateMenusCache: jest.fn().mockResolvedValue(null),
+    invalidateUsersCache: jest.fn().mockResolvedValue(null),
+    invalidateUserCache: jest.fn().mockResolvedValue(null),
+    invalidateRestaurantsCache: jest.fn().mockResolvedValue(null),
+    invalidateOrdersCache: jest.fn().mockResolvedValue(null),
+  }));
+
+  // PASO 5: Mockear connectDatabase para que NO reconecte
+  // Usamos la conexión que ya levantamos arriba
+  jest.mock("../../config/database.js", () => ({
+    __esModule: true,
+    default: jest.fn().mockResolvedValue(null),
+    pool: {
+      query: jest.fn().mockResolvedValue({ rows: [] }),
+      connect: jest.fn().mockResolvedValue({
+        query: jest.fn().mockResolvedValue({ rows: [] }),
+        release: jest.fn(),
+      })
+    },
+    getDatabaseStatus: jest.fn().mockReturnValue("connected")
+  }));
+
+  // PASO 6: Importar el app DESPUÉS de todos los mocks y la BD
   const module = await import("../../server.js");
   app = module.default;
 
-  // Inyecta usuario autenticado en todos los requests
+  // PASO 7: Inyectar usuario autenticado
   app.use((req, res, next) => {
     req.kauth = {
       grant: {
@@ -55,11 +93,12 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await teardownDatabase();
+  await mongoose.disconnect();
+  await mongoServer.stop();
 });
 
 afterEach(async () => {
-  await clearMenu(pool);
+  await clearMenu(null);
 });
 
 // ─────────────────────────────────────────────
@@ -69,7 +108,7 @@ describe(`GET /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 200 con el menú y sus productos cuando existe", async () => {
 
-    const { menuId } = await seedMenu(pool);
+    const { menuId } = await seedMenu(null);
 
     const response = await request(app)
       .get(`/api/menus/${menuId}`);
@@ -82,10 +121,7 @@ describe(`GET /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 404 si el menú no existe", async () => {
 
-    // ID que no existe en ninguno de los dos motores
-    const fakeId = dbType === "mongo"
-      ? new mongoose.Types.ObjectId().toString()
-      : 9999;
+    const fakeId = new mongoose.Types.ObjectId().toString();
 
     const response = await request(app)
       .get(`/api/menus/${fakeId}`);
@@ -103,7 +139,7 @@ describe(`PUT /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 200 con el menú actualizado", async () => {
 
-    const { menuId } = await seedMenu(pool);
+    const { menuId } = await seedMenu(null);
 
     const response = await request(app)
       .put(`/api/menus/${menuId}`)
@@ -116,7 +152,7 @@ describe(`PUT /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 400 si falta el nombre", async () => {
 
-    const { menuId } = await seedMenu(pool);
+    const { menuId } = await seedMenu(null);
 
     const response = await request(app)
       .put(`/api/menus/${menuId}`)
@@ -128,9 +164,7 @@ describe(`PUT /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 404 si el menú no existe", async () => {
 
-    const fakeId = dbType === "mongo"
-      ? new mongoose.Types.ObjectId().toString()
-      : 9999;
+    const fakeId = new mongoose.Types.ObjectId().toString();
 
     const response = await request(app)
       .put(`/api/menus/${fakeId}`)
@@ -149,7 +183,7 @@ describe(`DELETE /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 200 cuando el menú es eliminado correctamente", async () => {
 
-    const { menuId } = await seedMenu(pool);
+    const { menuId } = await seedMenu(null);
 
     const response = await request(app)
       .delete(`/api/menus/${menuId}`);
@@ -157,7 +191,6 @@ describe(`DELETE /api/menus/:id [${dbType}]`, () => {
     expect(response.status).toBe(200);
     expect(response.body.message).toBe("Menú eliminado correctamente");
 
-    // Verifica que el menú realmente ya no existe en la BD
     const check = await request(app)
       .get(`/api/menus/${menuId}`);
 
@@ -166,9 +199,7 @@ describe(`DELETE /api/menus/:id [${dbType}]`, () => {
 
   it("debe retornar 404 si el menú no existe", async () => {
 
-    const fakeId = dbType === "mongo"
-      ? new mongoose.Types.ObjectId().toString()
-      : 9999;
+    const fakeId = new mongoose.Types.ObjectId().toString();
 
     const response = await request(app)
       .delete(`/api/menus/${fakeId}`);
@@ -186,7 +217,7 @@ describe(`GET /api/products [${dbType}]`, () => {
 
   it("debe retornar 200 con todos los productos", async () => {
 
-    await seedMenu(pool);
+    await seedMenu(null);
 
     const response = await request(app)
       .get("/api/products");

@@ -1,14 +1,14 @@
-
-// Verifica que el service delega correctamente las operaciones al DAO
-// El DAO se inyecta como dependencia, por lo que se mockea manualmente
-
 import MenuService from "../services/menu.service.js";
+import { invalidateMenusCache } from "../middlewares/cacheHelper.js";
 
 
-// SETUP: creamos un DAO falso antes de cada prueba
+// Mock del helper de cache
+jest.mock("../middlewares/cacheHelper.js", () => ({
+  invalidateMenusCache: jest.fn(),
+}));
 
 
-// Función helper que crea un DAO mock con todos los métodos necesarios
+// Helper para crear DAO falso
 const createMockDAO = () => ({
   getMenuById: jest.fn(),
   updateMenuById: jest.fn(),
@@ -17,8 +17,10 @@ const createMockDAO = () => ({
 });
 
 
+// ─────────────────────────────────────────────
 // PRUEBAS: getMenuById
 // ─────────────────────────────────────────────
+
 describe("MenuService - getMenuById", () => {
 
   let menuService;
@@ -26,11 +28,11 @@ describe("MenuService - getMenuById", () => {
 
   beforeEach(() => {
     mockDAO = createMockDAO();
-    // Inyectamos el DAO falso al service, simulando la inyección de dependencias real
     menuService = new MenuService(mockDAO);
+
+    jest.clearAllMocks();
   });
 
-  // Caso exitoso: el DAO devuelve el menú
   it("debe retornar el menú cuando el DAO lo encuentra", async () => {
 
     const fakeMenu = { id: 1, name: "Menú del día", products: [] };
@@ -39,13 +41,10 @@ describe("MenuService - getMenuById", () => {
 
     const result = await menuService.getMenuById(1);
 
-    // Verifica que el service llamó al DAO con el id correcto
     expect(mockDAO.getMenuById).toHaveBeenCalledWith(1);
-    // Verifica que el resultado es exactamente lo que devolvió el DAO
     expect(result).toEqual(fakeMenu);
   });
 
-  // Caso: menú no encontrado, el DAO devuelve null
   it("debe retornar null cuando el DAO no encuentra el menú", async () => {
 
     mockDAO.getMenuById.mockResolvedValue(null);
@@ -56,19 +55,23 @@ describe("MenuService - getMenuById", () => {
     expect(result).toBeNull();
   });
 
-  // Caso: el DAO lanza un error, el service lo propaga
   it("debe propagar el error si el DAO falla", async () => {
 
     mockDAO.getMenuById.mockRejectedValue(new Error("DB error"));
 
-    await expect(menuService.getMenuById(1)).rejects.toThrow("DB error");
+    await expect(menuService.getMenuById(1))
+      .rejects
+      .toThrow("DB error");
+
     expect(mockDAO.getMenuById).toHaveBeenCalledWith(1);
   });
 
 });
 
 
+// ─────────────────────────────────────────────
 // PRUEBAS: updateMenuById
+// ─────────────────────────────────────────────
 
 describe("MenuService - updateMenuById", () => {
 
@@ -78,10 +81,11 @@ describe("MenuService - updateMenuById", () => {
   beforeEach(() => {
     mockDAO = createMockDAO();
     menuService = new MenuService(mockDAO);
+
+    jest.clearAllMocks();
   });
 
-  // Caso exitoso: el DAO actualiza y devuelve el menú actualizado
-  it("debe retornar el menú actualizado cuando el DAO lo encuentra", async () => {
+  it("debe retornar el menú actualizado y limpiar cache", async () => {
 
     const fakeMenu = { id: 1, name: "Nuevo nombre" };
 
@@ -89,35 +93,50 @@ describe("MenuService - updateMenuById", () => {
 
     const result = await menuService.updateMenuById(1, "Nuevo nombre");
 
-    // Verifica que el service pasó correctamente el id y el nombre al DAO
-    expect(mockDAO.updateMenuById).toHaveBeenCalledWith(1, "Nuevo nombre");
+    expect(mockDAO.updateMenuById)
+      .toHaveBeenCalledWith(1, "Nuevo nombre");
+
+    // Verifica invalidación de cache
+    expect(invalidateMenusCache).toHaveBeenCalled();
+
     expect(result).toEqual(fakeMenu);
   });
 
-  // Caso: el menú no existe, el DAO devuelve null
   it("debe retornar null cuando el DAO no encuentra el menú", async () => {
 
     mockDAO.updateMenuById.mockResolvedValue(null);
 
     const result = await menuService.updateMenuById(99, "Test");
 
-    expect(mockDAO.updateMenuById).toHaveBeenCalledWith(99, "Test");
+    expect(mockDAO.updateMenuById)
+      .toHaveBeenCalledWith(99, "Test");
+
+    expect(invalidateMenusCache).toHaveBeenCalled();
+
     expect(result).toBeNull();
   });
 
-  // Caso: el DAO lanza un error, el service lo propaga
   it("debe propagar el error si el DAO falla", async () => {
 
     mockDAO.updateMenuById.mockRejectedValue(new Error("DB error"));
 
-    await expect(menuService.updateMenuById(1, "Test")).rejects.toThrow("DB error");
-    expect(mockDAO.updateMenuById).toHaveBeenCalledWith(1, "Test");
+    await expect(menuService.updateMenuById(1, "Test"))
+      .rejects
+      .toThrow("DB error");
+
+    expect(mockDAO.updateMenuById)
+      .toHaveBeenCalledWith(1, "Test");
+
+    // No debería invalidar cache si falla antes
+    expect(invalidateMenusCache).not.toHaveBeenCalled();
   });
 
 });
 
 
+// ─────────────────────────────────────────────
 // PRUEBAS: deleteMenu
+// ─────────────────────────────────────────────
 
 describe("MenuService - deleteMenu", () => {
 
@@ -127,10 +146,11 @@ describe("MenuService - deleteMenu", () => {
   beforeEach(() => {
     mockDAO = createMockDAO();
     menuService = new MenuService(mockDAO);
+
+    jest.clearAllMocks();
   });
 
-  // Caso exitoso: el DAO elimina y devuelve el menú eliminado
-  it("debe retornar el menú eliminado cuando el DAO lo encuentra", async () => {
+  it("debe retornar el menú eliminado y limpiar cache", async () => {
 
     const fakeMenu = { id: 1, name: "Menú eliminado" };
 
@@ -139,10 +159,12 @@ describe("MenuService - deleteMenu", () => {
     const result = await menuService.deleteMenu(1);
 
     expect(mockDAO.deleteMenu).toHaveBeenCalledWith(1);
+
+    expect(invalidateMenusCache).toHaveBeenCalled();
+
     expect(result).toEqual(fakeMenu);
   });
 
-  // Caso: el menú no existe, el DAO devuelve null
   it("debe retornar null cuando el DAO no encuentra el menú", async () => {
 
     mockDAO.deleteMenu.mockResolvedValue(null);
@@ -150,22 +172,31 @@ describe("MenuService - deleteMenu", () => {
     const result = await menuService.deleteMenu(99);
 
     expect(mockDAO.deleteMenu).toHaveBeenCalledWith(99);
+
+    expect(invalidateMenusCache).toHaveBeenCalled();
+
     expect(result).toBeNull();
   });
 
-  // Caso: el DAO lanza un error, el service lo propaga
   it("debe propagar el error si el DAO falla", async () => {
 
     mockDAO.deleteMenu.mockRejectedValue(new Error("DB error"));
 
-    await expect(menuService.deleteMenu(1)).rejects.toThrow("DB error");
+    await expect(menuService.deleteMenu(1))
+      .rejects
+      .toThrow("DB error");
+
     expect(mockDAO.deleteMenu).toHaveBeenCalledWith(1);
+
+    expect(invalidateMenusCache).not.toHaveBeenCalled();
   });
 
 });
 
 
+// ─────────────────────────────────────────────
 // PRUEBAS: getAllProducts
+// ─────────────────────────────────────────────
 
 describe("MenuService - getAllProducts", () => {
 
@@ -175,9 +206,10 @@ describe("MenuService - getAllProducts", () => {
   beforeEach(() => {
     mockDAO = createMockDAO();
     menuService = new MenuService(mockDAO);
+
+    jest.clearAllMocks();
   });
 
-  // Caso exitoso: el DAO devuelve lista de productos
   it("debe retornar todos los productos cuando el DAO los encuentra", async () => {
 
     const fakeProducts = [
@@ -190,10 +222,10 @@ describe("MenuService - getAllProducts", () => {
     const result = await menuService.getAllProducts();
 
     expect(mockDAO.getAllProducts).toHaveBeenCalled();
+
     expect(result).toEqual(fakeProducts);
   });
 
-  // Caso: no hay productos, el DAO devuelve lista vacía
   it("debe retornar lista vacía si no hay productos", async () => {
 
     mockDAO.getAllProducts.mockResolvedValue([]);
@@ -201,15 +233,18 @@ describe("MenuService - getAllProducts", () => {
     const result = await menuService.getAllProducts();
 
     expect(mockDAO.getAllProducts).toHaveBeenCalled();
+
     expect(result).toEqual([]);
   });
 
-  // Caso: el DAO lanza un error, el service lo propaga
   it("debe propagar el error si el DAO falla", async () => {
 
     mockDAO.getAllProducts.mockRejectedValue(new Error("DB error"));
 
-    await expect(menuService.getAllProducts()).rejects.toThrow("DB error");
+    await expect(menuService.getAllProducts())
+      .rejects
+      .toThrow("DB error");
+
     expect(mockDAO.getAllProducts).toHaveBeenCalled();
   });
 

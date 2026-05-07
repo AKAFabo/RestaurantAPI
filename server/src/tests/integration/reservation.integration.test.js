@@ -2,8 +2,11 @@
 // Prueba de integración del módulo de reservaciones
 // Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
+process.env.DB = "mongo";
+process.env.DB_TYPE = "mongo";
+
 // ─────────────────────────────────────────────
-// MOCK DE KEYCLOAK - debe ir primero
+// MOCKS - deben ir antes de cualquier import
 // ─────────────────────────────────────────────
 jest.mock("../../keycloak/keycloak.js", () => {
   const session = require("express-session");
@@ -28,38 +31,97 @@ jest.mock("../../keycloak/keycloak.js", () => {
   };
 });
 
+jest.mock("../../config/redis.js", () => ({
+  default: {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(null),
+    del: jest.fn().mockResolvedValue(null),
+    keys: jest.fn().mockResolvedValue([]),
+    connect: jest.fn().mockResolvedValue(null),
+    on: jest.fn()
+  }
+}));
+
+jest.mock("../../middlewares/cache.js", () => ({
+  cache: () => (req, res, next) => next()
+}));
+
+jest.mock("../../middlewares/cacheHelper.js", () => ({
+  invalidateMenusCache: jest.fn().mockResolvedValue(null),
+  invalidateUsersCache: jest.fn().mockResolvedValue(null),
+  invalidateUserCache: jest.fn().mockResolvedValue(null),
+  invalidateRestaurantsCache: jest.fn().mockResolvedValue(null),
+  invalidateOrdersCache: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock("../../config/database.js", () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(null),
+  pool: {
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    connect: jest.fn().mockResolvedValue({
+      query: jest.fn().mockResolvedValue({ rows: [] }),
+      release: jest.fn(),
+    })
+  },
+  getDatabaseStatus: jest.fn().mockReturnValue("connected")
+}));
+
 import request from "supertest";
 import mongoose from "mongoose";
-import { setupDatabase, teardownDatabase } from "./helpers/setupDatabase.js";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import { seedReservation, clearReservation } from "./seeds/reservation.seed.js";
-import { reservationService } from "../../services/config.js";
+import { mockAdminUser } from "./helpers/mockKeycloak.js";
 
-const dbType = process.env.DB_TYPE || "mongo";
-
+const dbType = "mongo";
 let app;
-let pool;
+let mongoServer;
 
 // ─────────────────────────────────────────────
 // SETUP
 // ─────────────────────────────────────────────
 beforeAll(async () => {
-  const db = await setupDatabase();
-  pool = db.pool || null;
 
+  // PASO 1: Levantar MongoDB en memoria
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  process.env.MONGO_URI = uri;
+  await mongoose.connect(uri);
+
+  // PASO 2: Importar app después de conectar BD
   const module = await import("../../server.js");
   app = module.default;
+
+  // PASO 3: Inyectar usuario autenticado
+  app.use((req, res, next) => {
+    req.kauth = {
+      grant: {
+        access_token: { content: mockAdminUser }
+      }
+    };
+    next();
+  });
 });
 
 afterAll(async () => {
-  await teardownDatabase();
+  await mongoose.disconnect();
+  await mongoServer.stop();
 });
 
 afterEach(async () => {
-  await clearReservation(pool);
+  await clearReservation(null);
 });
 
 // ─────────────────────────────────────────────
-// HELPER: crea un usuario falso válido para el mock
+// HELPER: importa el service después de que la BD esté lista
+// ─────────────────────────────────────────────
+const getReservationService = async () => {
+  const { reservationService } = await import("../../services/config.js");
+  return reservationService;
+};
+
+// ─────────────────────────────────────────────
+// HELPER: crea un usuario falso válido
 // ─────────────────────────────────────────────
 const createFakeUser = (email = "carlos.mora@lasazontica.com") => {
   const fakeId = new mongoose.Types.ObjectId();
@@ -75,15 +137,17 @@ const createFakeUser = (email = "carlos.mora@lasazontica.com") => {
 // ─────────────────────────────────────────────
 describe(`POST /api/reservations [${dbType}]`, () => {
 
-  // Resetea getByEmail a usuario válido antes de cada test
-  beforeEach(() => {
+  let reservationService;
+
+  beforeEach(async () => {
+    reservationService = await getReservationService();
     reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
   });
 
   // Caso exitoso: reserva creada correctamente
   it("debe retornar 201 con la reserva creada", async () => {
 
-    const { tableId } = await seedReservation(pool);
+    const { tableId } = await seedReservation(null);
 
     const response = await request(app)
       .post("/api/reservations")
@@ -105,7 +169,6 @@ describe(`POST /api/reservations [${dbType}]`, () => {
       .post("/api/reservations")
       .send({
         table_id: "123"
-        // faltan reservation_time y party_size
       });
 
     expect(response.status).toBe(400);
@@ -115,9 +178,7 @@ describe(`POST /api/reservations [${dbType}]`, () => {
   // Error 404: usuario no existe en la BD
   it("debe retornar 404 si el usuario no existe en la BD", async () => {
 
-    const { tableId } = await seedReservation(pool);
-
-    // Sobreescribimos para este test
+    const { tableId } = await seedReservation(null);
     reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(null);
 
     const response = await request(app)
@@ -155,16 +216,18 @@ describe(`POST /api/reservations [${dbType}]`, () => {
 // ─────────────────────────────────────────────
 describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
 
-  beforeEach(() => {
+  let reservationService;
+
+  beforeEach(async () => {
+    reservationService = await getReservationService();
     reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
   });
 
   // Caso exitoso: reserva cancelada correctamente
   it("debe retornar 200 cuando la reserva es cancelada", async () => {
 
-    const { tableId } = await seedReservation(pool);
+    const { tableId } = await seedReservation(null);
 
-    // Primero creamos una reserva
     const createResponse = await request(app)
       .post("/api/reservations")
       .send({
@@ -178,14 +241,12 @@ describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
     const reservationId = createResponse.body.reservation?._id ||
                           createResponse.body.reservation?.id;
 
-    // Mockeamos getByEmail con el user_id de la reserva creada
     reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
       _id: createResponse.body.reservation.user_id,
       id: createResponse.body.reservation.user_id,
       email: "carlos.mora@lasazontica.com"
     });
 
-    // Cancelamos la reserva
     const response = await request(app)
       .delete(`/api/reservations/${reservationId}`);
 
@@ -193,7 +254,7 @@ describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
     expect(response.body.message).toBe("Reserva cancelada correctamente");
   });
 
-  // Error 400: falta el id
+  // Error 404: la reserva no existe
   it("debe retornar 404 si la reserva no existe", async () => {
 
     const fakeId = new mongoose.Types.ObjectId().toString();
@@ -208,9 +269,8 @@ describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
   // Error 400: reserva ya cancelada
   it("debe retornar 400 si la reserva ya está cancelada", async () => {
 
-    const { tableId } = await seedReservation(pool);
+    const { tableId } = await seedReservation(null);
 
-    // Creamos una reserva
     const createResponse = await request(app)
       .post("/api/reservations")
       .send({
@@ -224,7 +284,6 @@ describe(`DELETE /api/reservations/:id [${dbType}]`, () => {
     const reservationId = createResponse.body.reservation?._id ||
                           createResponse.body.reservation?.id;
 
-    // Mockeamos con el user_id correcto
     reservationService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
       _id: createResponse.body.reservation.user_id,
       id: createResponse.body.reservation.user_id,

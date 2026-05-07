@@ -12,7 +12,8 @@ export const seedMenu = async (pool = null) => {
     // Importamos los modelos de Mongo
     const { default: Restaurant } = await import("../../../models/restaurant.model.js");
     const { default: Menu } = await import("../../../models/menu.Model.js");
-
+    console.log("SEED URI:", mongoose.connection.host);
+    console.log("SEED DB:", mongoose.connection.name);
     // Crear restaurante con mesas embebidas
     const restaurant = await Restaurant.create({
       name: "La Sazón Tica",
