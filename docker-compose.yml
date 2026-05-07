@@ -75,6 +75,12 @@ services:
     depends_on:
       - db
 
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
   #mongo:
    # image: mongo:7
     #container_name: mongo_db

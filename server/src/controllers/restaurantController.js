@@ -24,7 +24,7 @@ const restaurantController = {
             const email = token?.email;
             //console.log('Token email:', email);
             const dbUser = await userService.getByEmail(email);
-            //console.log('ID: ', dbUser.user.id)
+            console.log('ID: ', dbUser.user.id)
 
             if (!dbUser) {
                 return res.status(404).json({ error: 'User not found' });

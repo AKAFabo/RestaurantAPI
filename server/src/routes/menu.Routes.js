@@ -4,6 +4,7 @@ import{getMenuById} from "../controllers/menuController.js"
 import{getAllProducts} from "../controllers/menuController.js"
 import {updateMenubyId } from  "../controllers/menuController.js"
 import {deleteMenu } from  "../controllers/menuController.js"
+import { cache } from "../middlewares/cache.js"
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ const router = express.Router();
  *         description: Menú no encontrado
  */
 
-router.get("/:id", keycloak.protect(), getMenuById);
+router.get("/:id", cache("menu", 120), keycloak.protect(), getMenuById);
 
 /**
  * @swagger
@@ -83,5 +84,5 @@ router.put("/:id", keycloak.protect("realm:admin"), updateMenubyId);
  */
 
 router.delete("/:id", keycloak.protect("realm:admin"), deleteMenu);
-router.get("/products", getAllProducts); 
+router.get("/products", cache("products", 120), getAllProducts); 
 export default router; 

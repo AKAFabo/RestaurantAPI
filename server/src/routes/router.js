@@ -19,7 +19,9 @@ router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/reservations', reservationRoutes);
 
-// permisos de keycloak
+
+
+// permisos de keycloak testing
 
 /*  Pública */
 router.get("/public", (req, res) => {
