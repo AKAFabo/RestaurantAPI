@@ -1,3 +1,8 @@
+import {
+    invalidateUsersCache,
+    invalidateUserCache
+} from '../middlewares/cacheHelper.js'
+
 class UserService {
     constructor(userDAO) {
         this.userDAO = userDAO;
@@ -23,6 +28,8 @@ class UserService {
             password
         })
 
+        await invalidateUsersCache();
+
         return { user };
     }
 
@@ -35,12 +42,20 @@ class UserService {
     async updateUser(id, { email, name, password }){
         
         const user = await this.userDAO.updateUser(id, { email, name, password })
+
+        await invalidateUserCache(id); //Invalidar, ruta PUT
+        await invalidateUsersCache();
+
         return { user };
     }
 
     async deleteUser(id) {
 
         const user = await this.userDAO.deleteUser(id);
+
+        await invalidateUsersCache();
+        await invalidateUserCache(id);
+
         return { user };
     }
 }

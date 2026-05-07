@@ -111,6 +111,7 @@ const userController = {
             }
 
             // Buscar en Keycloak con el email actual, actualizar con los nuevos datos
+            console.log(currentUser.user.email)
             await updateKeycloakUser(currentUser.user.email, { email, name, password });
             const updatedUser = await userService.updateUser(id, { email, name, password });
 
