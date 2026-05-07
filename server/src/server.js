@@ -30,8 +30,8 @@ const startServer = async () => {
   try {
     await connectDatabase();
     const server = app.listen(config.server.port, () => {
-      console.log(`Server running on port 80 with nginx`);
-      console.log(`Health check: http://localhost:80/api/health`);
+      console.log(`Server running on port ${config.server.port}`);
+    console.log(`Health check: http://localhost:${config.server.port}/api/health`);
      // console.log("ENV SECRET:", process.env.KEYCLOAK_CLIENT_SECRET);
     });
 
