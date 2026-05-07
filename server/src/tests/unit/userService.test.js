@@ -2,16 +2,16 @@
 // Pruebas unitarias del UserService
 // Verifica lógica de negocio y uso de cache
 
-import UserService from "../services/user.service.js";
+import UserService from "../../services/user.service.js";
 
 import {
   invalidateUsersCache,
   invalidateUserCache
-} from "../middlewares/cacheHelper.js";
+} from "../../middlewares/cacheHelper.js";
 
 
 // Mock del helper de cache
-jest.mock("../middlewares/cacheHelper.js", () => ({
+jest.mock("../../middlewares/cacheHelper.js", () => ({
   invalidateUsersCache: jest.fn(),
   invalidateUserCache: jest.fn(),
 }));

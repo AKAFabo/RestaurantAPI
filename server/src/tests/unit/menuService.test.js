@@ -1,9 +1,9 @@
-import MenuService from "../services/menu.service.js";
-import { invalidateMenusCache } from "../middlewares/cacheHelper.js";
+import MenuService from "../../services/menu.service.js";
+import { invalidateMenusCache } from "../../middlewares/cacheHelper.js";
 
 
 // Mock del helper de cache
-jest.mock("../middlewares/cacheHelper.js", () => ({
+jest.mock("../../middlewares/cacheHelper.js", () => ({
   invalidateMenusCache: jest.fn(),
 }));
 

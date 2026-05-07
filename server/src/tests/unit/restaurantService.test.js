@@ -2,12 +2,12 @@
 // Pruebas unitarias del RestaurantService
 // Verifica lógica de negocio y uso de cache
 
-import RestaurantService from "../services/restaurant.service.js";
-import { invalidateRestaurantsCache } from "../middlewares/cacheHelper.js";
+import RestaurantService from "../../services/restaurant.service.js";
+import { invalidateRestaurantsCache } from "../../middlewares/cacheHelper.js";
 
 
 // Mock del helper de cache
-jest.mock("../middlewares/cacheHelper.js", () => ({
+jest.mock("../../middlewares/cacheHelper.js", () => ({
   invalidateRestaurantsCache: jest.fn(),
 }));
 

@@ -2,12 +2,12 @@
 // Pruebas unitarias del OrderService
 // Verifica lógica de negocio, permisos y uso de cache
 
-import OrderService from "../services/order.service.js";
-import { invalidateOrdersCache } from "../middlewares/cacheHelper.js";
+import OrderService from "../../services/order.service.js";
+import { invalidateOrdersCache } from "../../middlewares/cacheHelper.js";
 
 
 // Mock del helper de cache
-jest.mock("../middlewares/cacheHelper.js", () => ({
+jest.mock("../../middlewares/cacheHelper.js", () => ({
   invalidateOrdersCache: jest.fn(),
 }));
 
