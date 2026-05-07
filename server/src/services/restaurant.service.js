@@ -5,9 +5,9 @@ class RestaurantService {
         this.restaurantDAO = restaurantDAO;
     }
 
-    async createRestaurant({ name, address, phone, admin_id }){
+    async createRestaurant({ name, address, phone, admin_id, tables = [] }){
         
-        const restaurant = await this.restaurantDAO.createRestaurant({ name, address, phone, admin_id })
+        const restaurant = await this.restaurantDAO.createRestaurant({ name, address, phone, admin_id, tables })
         await invalidateRestaurantsCache();
         return { restaurant };
     }
@@ -18,9 +18,9 @@ class RestaurantService {
         return { restaurants };
     }
 
-    async createMenu(restaurantId, { name }){
+    async createMenu(restaurantId, { name, products = [] }){
 
-        const menu = await this.restaurantDAO.createMenu(restaurantId, { name })
+        const menu = await this.restaurantDAO.createMenu(restaurantId, { name, products })
         await invalidateRestaurantsCache();
         return { menu };
     }

@@ -4,13 +4,14 @@ import Menu from "../../models/menu.Model.js";
 
 class RestaurantMongoDAO extends RestaurantDAO {
 
-    async createRestaurant({ name, address, phone, admin_id }) {
+    async createRestaurant({ name, address, phone, admin_id, tables = [] }) {
         try {
             const restaurant = await Restaurant.create({
                 name,
                 address,
                 phone,
-                admin_id
+                admin_id,
+                tables
             });
 
             return restaurant;
@@ -30,12 +31,12 @@ class RestaurantMongoDAO extends RestaurantDAO {
         }
     }
 
-    async createMenu(restaurantId, { name }) {
+    async createMenu(restaurantId, { name, products = [] }) {
         try {
             const menu = await Menu.create({
                 restaurant_id: restaurantId,
                 name,
-                products: [] // inicial vacío
+                products
             });
 
             return menu;

@@ -13,7 +13,7 @@ const restaurantController = {
 
     async createRestaurant(req, res) {
         try {
-            const { name, address, phone } = req.body;
+            const { name, address, phone, tables } = req.body;
 
             // Validar primero
             if (!name || !address || !phone) {
@@ -30,7 +30,7 @@ const restaurantController = {
                 return res.status(404).json({ error: 'User not found' });
             }
 
-            const newRestaurant = await restaurantService.createRestaurant({ name, address, phone, admin_id: dbUser.user.id });
+            const newRestaurant = await restaurantService.createRestaurant({ name, address, phone, admin_id: dbUser.user.id, tables });
             res.status(201).json(newRestaurant);
         } catch (error) {
             console.error('Error creating restaurant:', error);
@@ -51,11 +51,11 @@ const restaurantController = {
     async createMenu(req, res) {
         try {
             const { restaurantId } = req.params;
-            const { name } = req.body;
+            const { name, products } = req.body;
             if (!name) {
                 return res.status(400).json({ error: 'Menu name is required' });
             }
-            const newMenu = await restaurantService.createMenu(restaurantId, { name });
+            const newMenu = await restaurantService.createMenu(restaurantId, { name, products });
             res.status(201).json(newMenu);
         } catch (error) {
             console.error('Error creating menu:', error);
