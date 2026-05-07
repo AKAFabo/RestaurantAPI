@@ -150,6 +150,23 @@ http://localhost:3001/api
 
 ---
 
+## Endpoints del Search-Service
+- GET /search/products?q=texto
+- GET /search/products/category/:categoria
+- POST /search/reindex—Reindexarproductosmanualmente. 
+
+
+##  URL del search-service
+```
+http://localhost:4000/search 
+
+--- 
+
+## URL principal del sistema 
+http://localhost/search/? 
+
+http://localhost/api/?
+
 ## Swagger
 Documentación disponible en:
 ```
@@ -191,7 +208,7 @@ DB=mongo / postgres
 
 
 
-### Ejecutar servicios
+
 ```
 ## Levantar el sistema con mongo 
 Se levanta el compose con los 2 sharding y sus respectivas replicas 

@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
   res.send("Search service running ");
 });
 
-//  inicializar índice (infraestructura, no negocio)
+//  inicializar índice 
 (async () => {
   try {
     await searchDAO.createIndex();
