@@ -2,8 +2,11 @@
 // Prueba de integración del módulo de órdenes
 // Flujo completo: request HTTP → controller → service → DAO → BD en memoria
 
+process.env.DB = "mongo";
+process.env.DB_TYPE = "mongo";
+
 // ─────────────────────────────────────────────
-// MOCK DE KEYCLOAK - debe ir primero
+// MOCKS - deben ir antes de cualquier import
 // ─────────────────────────────────────────────
 jest.mock("../../keycloak/keycloak.js", () => {
   const session = require("express-session");
@@ -28,38 +31,98 @@ jest.mock("../../keycloak/keycloak.js", () => {
   };
 });
 
+jest.mock("../../config/redis.js", () => ({
+  default: {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(null),
+    del: jest.fn().mockResolvedValue(null),
+    keys: jest.fn().mockResolvedValue([]),
+    connect: jest.fn().mockResolvedValue(null),
+    on: jest.fn()
+  }
+}));
+
+jest.mock("../../middlewares/cache.js", () => ({
+  cache: () => (req, res, next) => next()
+}));
+
+jest.mock("../../middlewares/cacheHelper.js", () => ({
+  invalidateMenusCache: jest.fn().mockResolvedValue(null),
+  invalidateUsersCache: jest.fn().mockResolvedValue(null),
+  invalidateUserCache: jest.fn().mockResolvedValue(null),
+  invalidateRestaurantsCache: jest.fn().mockResolvedValue(null),
+  invalidateOrdersCache: jest.fn().mockResolvedValue(null),
+}));
+
+jest.mock("../../config/database.js", () => ({
+  __esModule: true,
+  default: jest.fn().mockResolvedValue(null),
+  pool: {
+    query: jest.fn().mockResolvedValue({ rows: [] }),
+    connect: jest.fn().mockResolvedValue({
+      query: jest.fn().mockResolvedValue({ rows: [] }),
+      release: jest.fn(),
+    })
+  },
+  getDatabaseStatus: jest.fn().mockReturnValue("connected")
+}));
+
 import request from "supertest";
 import mongoose from "mongoose";
-import { setupDatabase, teardownDatabase } from "./helpers/setupDatabase.js";
+import { MongoMemoryServer } from "mongodb-memory-server";
 import { seedOrder, clearOrder } from "./seeds/order.seed.js";
-import { orderService } from "../../services/config.js";
+import { mockAdminUser } from "./helpers/mockKeycloak.js";
 
-const dbType = process.env.DB_TYPE || "mongo";
-
+const dbType = "mongo";
 let app;
-let pool;
+let mongoServer;
 
 // ─────────────────────────────────────────────
 // SETUP
 // ─────────────────────────────────────────────
 beforeAll(async () => {
-  const db = await setupDatabase();
-  pool = db.pool || null;
 
+  // PASO 1: Levantar MongoDB en memoria
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
+  process.env.MONGO_URI = uri;
+  await mongoose.connect(uri);
+
+  // PASO 2: Importar app después de conectar BD
   const module = await import("../../server.js");
   app = module.default;
+
+  // PASO 3: Inyectar usuario autenticado
+  app.use((req, res, next) => {
+    req.kauth = {
+      grant: {
+        access_token: { content: mockAdminUser }
+      }
+    };
+    next();
+  });
 });
 
 afterAll(async () => {
-  await teardownDatabase();
+  await mongoose.disconnect();
+  await mongoServer.stop();
 });
 
 afterEach(async () => {
-  await clearOrder(pool);
+  await clearOrder(null);
 });
 
 // ─────────────────────────────────────────────
-// HELPER: crea un usuario falso válido para el mock
+// HELPER: importa el service dinámicamente
+// garantiza que usa la BD correcta
+// ─────────────────────────────────────────────
+const getOrderService = async () => {
+  const { orderService } = await import("../../services/config.js");
+  return orderService;
+};
+
+// ─────────────────────────────────────────────
+// HELPER: crea un usuario falso válido
 // ─────────────────────────────────────────────
 const createFakeUser = () => {
   const fakeId = new mongoose.Types.ObjectId();
@@ -75,15 +138,17 @@ const createFakeUser = () => {
 // ─────────────────────────────────────────────
 describe(`POST /api/orders [${dbType}]`, () => {
 
-  // Antes de cada test reseteamos getByEmail a un usuario válido
-  beforeEach(() => {
+  let orderService;
+
+  beforeEach(async () => {
+    orderService = await getOrderService();
     orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
   });
 
   // Caso exitoso: orden creada correctamente
   it("debe retornar 201 con la orden creada", async () => {
 
-    const { restaurantId, availableProductId } = await seedOrder(pool);
+    const { restaurantId, availableProductId } = await seedOrder(null);
 
     const response = await request(app)
       .post("/api/orders")
@@ -114,7 +179,7 @@ describe(`POST /api/orders [${dbType}]`, () => {
   // Error 400: items vacío
   it("debe retornar 400 si items está vacío", async () => {
 
-    const { restaurantId } = await seedOrder(pool);
+    const { restaurantId } = await seedOrder(null);
 
     const response = await request(app)
       .post("/api/orders")
@@ -130,9 +195,9 @@ describe(`POST /api/orders [${dbType}]`, () => {
   // Error 404: usuario no existe en la BD
   it("debe retornar 404 si el usuario no existe en la BD", async () => {
 
-    const { restaurantId, availableProductId } = await seedOrder(pool);
+    const { restaurantId, availableProductId } = await seedOrder(null);
 
-    // Sobreescribimos el mock para este test específico
+    // Sobreescribimos para este test
     orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(null);
 
     const response = await request(app)
@@ -153,15 +218,17 @@ describe(`POST /api/orders [${dbType}]`, () => {
 // ─────────────────────────────────────────────
 describe(`GET /api/orders/:id [${dbType}]`, () => {
 
-  // Antes de cada test reseteamos getByEmail a un usuario válido
-  beforeEach(() => {
+  let orderService;
+
+  beforeEach(async () => {
+    orderService = await getOrderService();
     orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue(createFakeUser());
   });
 
   // Caso exitoso: cliente ve su propia orden
   it("debe retornar 200 con la orden cuando el cliente es el dueño", async () => {
 
-    const { restaurantId, availableProductId } = await seedOrder(pool);
+    const { restaurantId, availableProductId } = await seedOrder(null);
 
     // Creamos la orden primero
     const createResponse = await request(app)
@@ -175,14 +242,13 @@ describe(`GET /api/orders/:id [${dbType}]`, () => {
 
     const orderId = createResponse.body.order?._id || createResponse.body.order?.id;
 
-    // Mockeamos getByEmail con el user_id de la orden creada
+    // Mockeamos con el user_id de la orden creada
     orderService.reservationDAO.getByEmail = jest.fn().mockResolvedValue({
       _id: createResponse.body.order.user_id,
       id: createResponse.body.order.user_id,
       email: "carlos.mora@lasazontica.com"
     });
 
-    // Consultamos la orden
     const response = await request(app)
       .get(`/api/orders/${orderId}`);
 
