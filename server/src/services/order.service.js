@@ -1,3 +1,5 @@
+import { invalidateOrdersCache } from "../middlewares/cacheHelper.js";
+
 class OrderService {
   constructor(orderDAO, reservationDAO) { // hace la inyeccion de dependencias
     this.orderDAO = orderDAO;
@@ -19,6 +21,8 @@ class OrderService {
       reservation_id,
       items
     });
+
+    await invalidateOrdersCache();
 
     return { order };// regresa la orden creada
   }

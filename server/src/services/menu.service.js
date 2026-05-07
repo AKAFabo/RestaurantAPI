@@ -1,3 +1,6 @@
+import { invalidateMenusCache } from "../middlewares/cacheHelper.js";
+
+
 class MenuService {
   // inyeccion de dependecias 
   constructor(menuDAO) { // recibe un dao y lo guarda en la clase 
@@ -9,11 +12,20 @@ class MenuService {
   }
 
   async updateMenuById(id, name) {
-    return await this.menuDAO.updateMenuById(id, name);
+    const result = await this.menuDAO.updateMenuById(id, name);
+
+    await invalidateMenusCache();
+
+    return result;
   }
 
+
   async deleteMenu(id) {
-    return await this.menuDAO.deleteMenu(id);
+    const result = await this.menuDAO.deleteMenu(id);
+
+    await invalidateMenusCache();
+
+    return result;
   }
   async getAllProducts() {
     return await this.menuDAO.getAllProducts();

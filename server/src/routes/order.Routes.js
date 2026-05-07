@@ -2,6 +2,7 @@ import express from 'express';
 import { createOrder } from "../controllers/orderController.js";
 import { getOrderById } from "../controllers/orderController.js"; 
 import { keycloak } from "../keycloak/keycloak.js";
+import { cache } from "../middlewares/cache.js"
 const router = express.Router();
 /**
  * @swagger
@@ -58,5 +59,5 @@ router.post("/", keycloak.protect(), createOrder);
  *         description: No autorizado
  */
 
-router.get("/:id", keycloak.protect(), getOrderById);
+router.get("/:id", keycloak.protect(), cache("orders", 120), getOrderById);
 export default router;
