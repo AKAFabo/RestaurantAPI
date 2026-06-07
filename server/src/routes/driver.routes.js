@@ -19,5 +19,10 @@ router.get(
     
     driverController.getAssignmentByOrderId
 );
+router.get(
+    "/routes",
+  
+    driverController.getRoutes
+);
 
 export default router;

@@ -89,6 +89,27 @@ async getAssignmentByOrderId(req, res) {
             error: "Error getting assignment"
         });
     }
+},
+async getRoutes(req, res) {
+
+    try {
+
+        const routes =
+            await driverService.getRoutes();
+
+        res.json(routes);
+
+    } catch (error) {
+
+        console.error(
+            "Error getting routes:",
+            error
+        );
+
+        res.status(500).json({
+            error: "Error getting routes"
+        });
+    }
 }
 };
 

@@ -66,6 +66,39 @@ async getAssignmentByOrderId(orderId) {
 
     return result.rows[0];
 }
+async getRoutesData() {
+
+    const result = await pool.query(
+        `
+        SELECT
+            d.id AS driver_id,
+            d.name AS driver_name,
+
+            o.id AS order_id,
+
+            ul.latitude,
+            ul.longitude,
+            ul.address
+
+        FROM delivery_drivers d
+
+        INNER JOIN delivery_assignments da
+            ON da.driver_id = d.id
+
+        INNER JOIN orders o
+            ON o.id = da.order_id
+
+        INNER JOIN user_locations ul
+            ON ul.user_id = o.user_id
+
+        WHERE d.active = true
+
+        ORDER BY d.id, o.id
+        `
+    );
+
+    return result.rows;
+}
 }
 
 export default new DriverPostgresDAO();

@@ -11,6 +11,11 @@ async getAssignmentByOrderId(orderId) {
         "Method getAssignmentByOrderId not implemented"
     );
 }
+async getRoutesData() {
+    throw new Error(
+        "Method getRoutesData not implemented"
+    );
+}
 
 }
 
