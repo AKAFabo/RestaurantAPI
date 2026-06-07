@@ -7,6 +7,9 @@ class OrderDAO {
   async getById(id) {
     throw new Error("Method getById not implemented");
   }
+  async assignDrivers() {
+    throw new Error("Method assignDrivers not implemented");
+}
 
 }
 

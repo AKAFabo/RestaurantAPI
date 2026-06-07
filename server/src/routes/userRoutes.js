@@ -29,5 +29,15 @@ router.delete( //No cacheado
   keycloak.protect('realm:client'),
   userController.deleteUser
 );
+router.post(
+  '/users/:id/location',
+ 
+  userController.saveLocation
+);
+router.get(
+  '/users/:id/location',
+
+  userController.getLocation
+);
 
 export default router;

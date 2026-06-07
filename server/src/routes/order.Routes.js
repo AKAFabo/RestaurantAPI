@@ -3,6 +3,7 @@ import { createOrder } from "../controllers/orderController.js";
 import { getOrderById } from "../controllers/orderController.js"; 
 import { keycloak } from "../keycloak/keycloak.js";
 import { cache } from "../middlewares/cache.js"
+import { assignDrivers } from "../controllers/orderController.js";
 const router = express.Router();
 /**
  * @swagger
@@ -60,4 +61,8 @@ router.post("/", keycloak.protect(), createOrder);
  */
 
 router.get("/:id", keycloak.protect(), cache("orders", 120), getOrderById);
+router.post(
+    "/assign-drivers",
+    assignDrivers
+);
 export default router;

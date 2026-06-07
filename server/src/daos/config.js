@@ -7,6 +7,7 @@ import orderPostgresDAO from "./orders/order.postgres.dao.js";
 
 import userPostgresDAO from "./users/user.postgres.dao.js";
 import restaurantPostgresDAO from "./restaurant/restaurant.postgres.dao.js";
+import driverPostgresDAO from "./drivers/driver.postgres.dao.js";
 
 
 
@@ -37,3 +38,5 @@ export const userDAO =
 
 export const restaurantDAO =
  dbType === "mongo" ? restaurantMongoDAO : restaurantPostgresDAO;
+ export const driverDAO =
+    driverPostgresDAO;

@@ -136,7 +136,68 @@ class PostgresOrderDAO extends OrderDAO {
 
     return order;
   }
-  
+  async assignDrivers() {
+
+    const pendingOrders = await pool.query(`
+        SELECT o.*
+        FROM orders o
+        LEFT JOIN delivery_assignments da
+            ON da.order_id = o.id
+        WHERE da.id IS NULL
+        ORDER BY o.id
+    `);
+
+    const drivers = await pool.query(`
+        SELECT *
+        FROM delivery_drivers
+        WHERE active = true
+        ORDER BY id
+    `);
+
+    if (drivers.rows.length === 0) {
+        throw new Error("No active drivers available");
+    }
+
+    const assignments = [];
+
+    let driverIndex = 0;
+
+    for (const order of pendingOrders.rows) {
+
+        const driver = drivers.rows[driverIndex];
+
+        const result = await pool.query(
+            `
+            INSERT INTO delivery_assignments
+            (
+                order_id,
+                driver_id
+            )
+            VALUES
+            (
+                $1,
+                $2
+            )
+            RETURNING *
+            `,
+            [
+                order.id,
+                driver.id
+            ]
+        );
+
+        assignments.push(result.rows[0]);
+
+        driverIndex++;
+
+        if (driverIndex >= drivers.rows.length) {
+            driverIndex = 0;
+        }
+    }
+
+    return assignments;
+
+}
 
 }
 

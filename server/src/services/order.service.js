@@ -52,6 +52,13 @@ class OrderService {
 
     return { order };
   }
+  async assignDrivers() {
+
+    const assignments =
+        await this.orderDAO.assignDrivers();
+
+    return { assignments };
+}
 }
 
 export default OrderService;

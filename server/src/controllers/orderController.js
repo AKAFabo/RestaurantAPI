@@ -107,3 +107,24 @@ export const getOrderById = async (req, res) => { // obtener una orden por su id
     });
   }
 };
+export const assignDrivers =async (req, res) => {
+
+    try {
+
+        const result =
+            await orderService.assignDrivers();
+
+        res.status(201).json(result);
+
+    } catch (error) {
+
+        console.error(
+            "Error assigning drivers:",
+            error
+        );
+
+        res.status(500).json({
+            error: error.message
+        });
+    }
+};

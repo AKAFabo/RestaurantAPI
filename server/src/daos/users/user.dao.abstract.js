@@ -23,6 +23,12 @@ class UserDAO {
   async deleteUser(id) {
     throw new Error("Method deleteUser implemented");
   }
+  async saveLocation(userId, { latitude, longitude, address }) {
+  throw new Error("Method saveLocation not implemented");
+}
+async getLocation(userId) {
+  throw new Error("Method getLocation not implemented");
+}
 
 }
 

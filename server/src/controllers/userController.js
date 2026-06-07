@@ -135,7 +135,81 @@ const userController = {
             console.error('Error deleting user:', error);
             res.status(500).json({ error: error.response?.data || error.message });
         }
+    },
+    async saveLocation(req, res) {
+
+    try {
+
+        const { id } = req.params;
+
+        const {
+            latitude,
+            longitude,
+            address
+        } = req.body;
+
+        if (
+            latitude === undefined ||
+            longitude === undefined
+        ) {
+            return res.status(400).json({
+                error: "Latitude and longitude are required"
+            });
+        }
+
+        const location =
+            await userService.saveLocation(
+                id,
+                {
+                    latitude,
+                    longitude,
+                    address
+                }
+            );
+
+        res.status(201).json(location);
+
+    } catch (error) {
+
+        console.error(
+            "Error saving location:",
+            error
+        );
+
+        res.status(500).json({
+            error: "Error saving location"
+        });
     }
+},
+async getLocation(req, res) {
+
+    try {
+
+        const { id } = req.params;
+
+        const location =
+            await userService.getLocation(id);
+
+        if (!location.location) {
+            return res.status(404).json({
+                error: "Location not found"
+            });
+        }
+
+        res.json(location);
+
+    } catch (error) {
+
+        console.error(
+            "Error getting location:",
+            error
+        );
+
+        res.status(500).json({
+            error: "Error getting location"
+        });
+    }
+}
 };
 
 export default userController;

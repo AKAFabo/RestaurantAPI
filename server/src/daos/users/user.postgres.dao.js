@@ -73,6 +73,64 @@ class UserPostgresDAO extends UserDAO {
             throw error;
         }
     }
+    async saveLocation(userId, { latitude, longitude, address }) {
+
+    const existingLocation = await pool.query(
+        `
+        SELECT id
+        FROM user_locations
+        WHERE user_id = $1
+        `,
+        [userId]
+    );
+
+    if (existingLocation.rows.length > 0) {
+
+        const result = await pool.query(
+            `
+            UPDATE user_locations
+            SET latitude = $1,
+                longitude = $2,
+                address = $3
+            WHERE user_id = $4
+            RETURNING *
+            `,
+            [latitude, longitude, address, userId]
+        );
+
+        return result.rows[0];
+    }
+
+    const result = await pool.query(
+        `
+        INSERT INTO user_locations
+        (
+            user_id,
+            latitude,
+            longitude,
+            address
+        )
+        VALUES ($1,$2,$3,$4)
+        RETURNING *
+        `,
+        [userId, latitude, longitude, address]
+    );
+
+    return result.rows[0];
+}
+async getLocation(userId) {
+
+    const result = await pool.query(
+        `
+        SELECT *
+        FROM user_locations
+        WHERE user_id = $1
+        `,
+        [userId]
+    );
+
+    return result.rows[0];
+}
 }
 
 export default new UserPostgresDAO();

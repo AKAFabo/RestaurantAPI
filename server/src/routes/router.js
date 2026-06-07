@@ -8,6 +8,7 @@ import orderRoutes from './order.Routes.js';
 import reservationRoutes from './reservation.Routes.js';
 import userRoutes from './userRoutes.js';
 import restaurantRoutes from './restaurantRoutes.js';
+import driverRoutes from "./driver.routes.js";
 const router = express.Router();
 
 router.use('/health', healthRouter);
@@ -18,6 +19,7 @@ router.use('/menus', menuRoutes);
 router.use('/products', productRoutes);
 router.use('/orders', orderRoutes);
 router.use('/reservations', reservationRoutes);
+router.use("/drivers", driverRoutes);
 
 
 
