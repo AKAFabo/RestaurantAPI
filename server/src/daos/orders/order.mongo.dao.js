@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Menu from "../../models/menu.Model.js";
 import Order from "../../models/order.Model.js";
 import OrderDAO from "./order.dao.abstract.js";
+import DeliveryDriver from "../../models/deliveryDriver.model.js";
 
 class MongoorderDAO extends OrderDAO {
 
@@ -86,5 +87,75 @@ class MongoorderDAO extends OrderDAO {
 
         return order;
         };
+    async assignDrivers() {
+
+    const drivers = await DeliveryDriver.find({
+        active: true
+    });
+
+    if (drivers.length === 0) {
+        throw new Error(
+            "No active drivers available"
+        );
+    }
+
+    const assignedOrderIds = new Set();
+
+    drivers.forEach(driver => {
+
+        driver.assignments.forEach(
+            assignment => {
+
+                assignedOrderIds.add(
+                    assignment.order_id.toString()
+                );
+
+            }
+        );
+
+    });
+
+    const pendingOrders = await Order.find({
+        status: "PENDING",
+        _id: {
+            $nin: [...assignedOrderIds]
+        }
+    });
+
+    const assignments = [];
+
+    let driverIndex = 0;
+
+    for (const order of pendingOrders) {
+
+        const driver =
+            drivers[driverIndex];
+
+        const assignment = {
+            order_id: order._id,
+            assigned_at: new Date()
+        };
+
+        driver.assignments.push(
+            assignment
+        );
+
+        await driver.save();
+
+        assignments.push({
+            order_id: order._id,
+            driver_id: driver._id,
+            assigned_at: assignment.assigned_at
+        });
+
+        driverIndex++;
+
+        if (driverIndex >= drivers.length) {
+            driverIndex = 0;
+        }
+    }
+
+    return assignments;
+}
 }
 export default new MongoorderDAO();

@@ -2,6 +2,8 @@ import User from "../../models/user.Model.js";
 import crypto from "crypto";
 import { createKeycloakUser } from "../../services/keycloakService.js";
 import UserDAO from './user.dao.abstract.js'
+import mongoose from "mongoose";
+import UserLocation from "../../models/userLocation.model.js";
 
 class UserMongoDAO extends UserDAO {
 
@@ -91,6 +93,45 @@ class UserMongoDAO extends UserDAO {
             throw error;
         }
     }
+    async saveLocation(
+    userId,
+    {
+        latitude,
+        longitude,
+        address
+    }
+) {
+
+    const objectId =
+        new mongoose.Types.ObjectId(userId);
+
+    const location =
+        await UserLocation.findOneAndUpdate(
+            {
+                user_id: objectId
+            },
+            {
+                latitude,
+                longitude,
+                address
+            },
+            {
+                upsert: true,
+                new: true
+            }
+        );
+
+    return location;
+}
+async getLocation(userId) {
+
+    const objectId =
+        new mongoose.Types.ObjectId(userId);
+
+    return await UserLocation.findOne({
+        user_id: objectId
+    }).lean();
+}
 }
 
 export default new UserMongoDAO();
