@@ -238,7 +238,54 @@ services:
     entrypoint: ["bash", "/scripts/init.sh"]
     profiles: ["full"]
  
- 
+
+
+# OLAP
+
+  postgres_hive:
+    image: postgres:16
+    container_name: postgres_hive
+    restart: always
+    environment:
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: hive123
+      POSTGRES_DB: metastore
+    ports:
+      - "5433:5432"
+
+  hive-metastore:
+    image: apache/hive:4.0.0
+    container_name: hive-metastore
+    depends_on:
+      - postgres_hive
+    environment:
+      SERVICE_NAME: metastore
+      DB_DRIVER: postgres
+      SERVICE_OPTS: >
+        -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres_hive:5432/metastore
+        -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
+        -Djavax.jdo.option.ConnectionUserName=hive
+        -Djavax.jdo.option.ConnectionPassword=hive123
+
+    volumes:
+      - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+
+  hive-server:
+    image: apache/hive:4.0.0
+    container_name: hive-server
+    depends_on:
+      - hive-metastore
+    environment:
+      SERVICE_NAME: hiveserver2
+      SERVICE_OPTS: >
+        -Dhive.metastore.uris=thrift://hive-metastore:9083
+    ports:
+      - "10000:10000"
+      - "10002:10002"
+
+    volumes:
+      - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+      
 volumes:
   postgres_data:
   mongo1_data:
