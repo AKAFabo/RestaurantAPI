@@ -253,8 +253,11 @@ services:
     ports:
       - "5433:5432"
 
+    volumes:
+      - postgres_hive_data:/var/lib/postgresql/data
+
   hive-metastore:
-    image: apache/hive:4.0.0
+    image: apache/hive:3.1.3
     container_name: hive-metastore
     depends_on:
       - postgres_hive
@@ -271,7 +274,8 @@ services:
       - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
 
   hive-server:
-    image: apache/hive:4.0.0
+  
+    image: apache/hive:3.1.3
     container_name: hive-server
     depends_on:
       - hive-metastore
@@ -285,9 +289,31 @@ services:
 
     volumes:
       - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
+      - hive_warehouse:/opt/hive/data/warehouse
+      
+  spark-service:
+    build:
+      context: ./spark-service
+
+    container_name: spark-service
+
+    volumes:
+      - ./spark-service:/app
+
+    depends_on:
+      - hive-server
+
+    restart: unless-stopped
+    environment:
+    - PYSPARK_SUBMIT_ARGS=--driver-memory 1g --executor-memory 1g pyspark-shell
+
+  
       
 volumes:
+ 
+  postgres_hive_data:
   postgres_data:
+  hive_warehouse:
   mongo1_data:
   mongo2_data:
   mongo3_data:
