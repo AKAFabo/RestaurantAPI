@@ -1,11 +1,10 @@
-id,menu_id,name,description,category,price,available
-4,2,Pizza Pepperoni,Pizza mediana,Comida Rápida,8000.00,t
-5,2,Pizza Margarita,Pizza clásica,Comida Rápida,7500.00,t
-14,5,Ensalada César,"Lechuga, pollo y aderezo",Entrada,4000.00,t
-15,5,Filete de Pollo,Pollo a la plancha con vegetales,Plato Fuerte,6500.00,t
-16,5,Tres Leches,Postre tradicional,Postre,3000.00,t
-17,5,Limonada Natural,Bebida refrescante,Bebidas,1500.00,t
-18,6,Hamburguesa Doble,Carne doble con queso,Fast Food,7000.00,t
-19,6,Hot Dog Especial,Salchicha con toppings,Fast Food,4000.00,t
-20,6,Nachos Supremos,Nachos con queso y carne,Snacks,3500.00,t
-21,6,Batido de Chocolate,Bebida dulce fría,Bebidas,2500.00,t
+4,Pizza Pepperoni,Comida Rápida,8000
+5,Pizza Margarita,Comida Rápida,7500
+14,Ensalada César,Entrada,4000
+15,Filete de Pollo,Plato Fuerte,6500
+16,Tres Leches,Postre,3000
+17,Limonada Natural,Bebidas,1500
+18,Hamburguesa Doble,Fast Food,7000
+19,Hot Dog Especial,Fast Food,4000
+20,Nachos Supremos,Snacks,3500
+21,Batido de Chocolate,Bebidas,2500

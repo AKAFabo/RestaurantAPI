@@ -298,13 +298,17 @@ services:
     container_name: spark-service
     volumes:
       - ./spark-service:/app
-      - hive_warehouse:/opt/hive/data/warehouse   # 👈 agregar esto
+      - hive_warehouse:/opt/hive/data/warehouse   
       - spark_ivy_cache:/root/.ivy2
     depends_on:
       - hive-server
-    restart: unless-stopped
+    restart: "no"
     environment:
-      - PYSPARK_SUBMIT_ARGS=--driver-memory 1g --executor-memory 1g pyspark-shell
+      - PYSPARK_SUBMIT_ARGS=pyspark-shell
+      - PYTHONPATH=/app
+    mem_limit: 2g
+    ports:
+      - "8000:8000"
 
 networks:
   default:

@@ -1,34 +1,42 @@
-from pyspark.sql import SparkSession
+import sys
+import os
 
-spark = (
-    SparkSession.builder
-    .appName("RestaurantAnalytics")
-    .config("spark.sql.warehouse.dir", "/opt/hive/data/warehouse")
-    .config("spark.hadoop.hive.metastore.uris", "thrift://hive-metastore:9083")
-    .config("spark.sql.hive.metastore.version", "3.1.3")
-    .config("spark.sql.hive.metastore.jars", "maven")
-    .enableHiveSupport()
-    .getOrCreate()
+sys.path.insert(0, os.path.abspath("/app"))
+
+print("PATH:", sys.path)
+
+
+print("FILES IN /app:", os.listdir("/app"))
+print("FILES IN /app/analysis:", os.listdir("/app/analysis"))
+
+from services.analytics_service import (
+    get_consumption,
+    get_peak_hours,
+    get_monthly_growth
 )
+from core.spark_session import create_spark
 
-print("=== DATABASES ===")
-spark.sql("SHOW DATABASES").show(truncate=False)
 
-print("=== TABLES ===")
-spark.sql("SHOW TABLES IN restaurant_dw").show(truncate=False)
 
-print("=== FACT ORDERS ===")
-spark.sql("SELECT COUNT(*) FROM restaurant_dw.fact_orders").show()
+def show(df, title):
+    print("\n" + "=" * 70)
+    print(f"{title}")
+    print("=" * 70)
+    df.show(truncate=False)
 
-print("=== DIM PRODUCT ===")
-spark.sql("SELECT COUNT(*) FROM restaurant_dw.dim_product").show()
 
-print("=== FACT ORDERS SAMPLE ===")
+def main():
+    spark = create_spark()
 
-spark.sql("""
-SELECT *
-FROM restaurant_dw.fact_orders
-LIMIT 10
-""").show(truncate=False)
+    show(get_consumption(spark), " TENDENCIAS DE CONSUMO")
+    show(get_peak_hours(spark), "HORARIOS PICO")
+    show(get_monthly_growth(spark), "CRECIMIENTO MENSUAL")
+    spark.sql("""
+    SELECT *
+    FROM restaurant_dw.dim_product
+    """).show(50, truncate=False)
+    spark.stop()
 
-spark.stop() 
+
+if __name__ == "__main__":
+    main()
