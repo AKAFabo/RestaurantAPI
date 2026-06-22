@@ -264,6 +264,7 @@ services:
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
+      IS_RESUME: "true"
       SERVICE_OPTS: >
         -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres_hive:5432/metastore
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
@@ -294,20 +295,20 @@ services:
   spark-service:
     build:
       context: ./spark-service
-
     container_name: spark-service
-
     volumes:
       - ./spark-service:/app
-
+      - hive_warehouse:/opt/hive/data/warehouse   # 👈 agregar esto
+      - spark_ivy_cache:/root/.ivy2
     depends_on:
       - hive-server
-
     restart: unless-stopped
     environment:
-    - PYSPARK_SUBMIT_ARGS=--driver-memory 1g --executor-memory 1g pyspark-shell
+      - PYSPARK_SUBMIT_ARGS=--driver-memory 1g --executor-memory 1g pyspark-shell
 
-  
+networks:
+  default:
+    name: tarea1bd2-network
       
 volumes:
  
@@ -321,3 +322,4 @@ volumes:
   mongo5_data:
   mongo6_data:
   configsvr_data:
+  spark_ivy_cache:
