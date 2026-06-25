@@ -196,6 +196,31 @@ Incluye:
 
 ---
 
+
+## Acceso a Metabase
+
+Abrir en el navegador:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Configuración Inicial
+
+La primera vez que se ejecuta Metabase se solicita:
+
+### Crear usuario administrador
+
+Completar:
+
+- Nombre
+- Correo electrónico
+- Contraseña
+
+---
+
 ##  Docker
 
 ### Dockerfile
@@ -203,7 +228,7 @@ La API se encuentra contenerizada en el dockerfile
 
 ---
 
-# Compatibilidad PostgreSQL / MongoDB
+## Compatibilidad PostgreSQL / MongoDB
 
 Para cambiar entre motores de las bases de datos se hace mediante una variable de entorno en el .env
 
@@ -228,4 +253,10 @@ Si se quiere levantar el mongo con sharding y tambien varias instancias de los m
 docker-compose --profile full up --build --scale app=3 --scale search-service=2 
 ```
 
+## Iniciar Metabase
 
+Si el contenedor no está ejecutándose:
+
+```bash
+docker compose up -d metabase
+```

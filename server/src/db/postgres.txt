@@ -1,0 +1,386 @@
+-- =========================================
+-- DROP TABLES , reiniciar datos
+-- =========================================
+
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+DROP TABLE IF EXISTS reservations CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS menus CASCADE;
+DROP TABLE IF EXISTS tables CASCADE;
+DROP TABLE IF EXISTS restaurants CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+
+-- =========================================
+-- ROLES
+-- =========================================
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+-- =========================================
+-- USERS
+-- =========================================
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_role
+        FOREIGN KEY (role_id)
+        REFERENCES roles(id)
+        ON DELETE RESTRICT
+);
+
+-- =========================================
+-- RESTAURANTS
+-- =========================================
+
+CREATE TABLE restaurants (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    address TEXT NOT NULL,
+    phone VARCHAR(20),
+    admin_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_restaurant_admin
+        FOREIGN KEY (admin_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- =========================================
+-- TABLES (MESAS)
+-- =========================================
+
+CREATE TABLE tables (
+    id SERIAL PRIMARY KEY,
+    restaurant_id INTEGER NOT NULL,
+    table_number INTEGER NOT NULL,
+    capacity INTEGER NOT NULL CHECK (capacity > 0),
+    CONSTRAINT fk_table_restaurant
+        FOREIGN KEY (restaurant_id)
+        REFERENCES restaurants(id)
+        ON DELETE CASCADE,
+    CONSTRAINT unique_table_per_restaurant
+        UNIQUE (restaurant_id, table_number)
+);
+
+-- =========================================
+-- MENUS
+-- =========================================
+
+CREATE TABLE menus (
+    id SERIAL PRIMARY KEY,
+    restaurant_id INTEGER NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_menu_restaurant
+        FOREIGN KEY (restaurant_id)
+        REFERENCES restaurants(id)
+        ON DELETE CASCADE
+);
+
+-- =========================================
+-- PRODUCTS (PLATOS)
+-- =========================================
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    menu_id INTEGER NOT NULL,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    category VARCHAR(100) NOT NULL, 
+    price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    available BOOLEAN DEFAULT TRUE,
+    CONSTRAINT fk_product_menu
+        FOREIGN KEY (menu_id)
+        REFERENCES menus(id)
+        ON DELETE CASCADE
+);
+
+-- =========================================
+-- RESERVATIONS
+-- =========================================
+
+CREATE TABLE reservations (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    table_id INTEGER NOT NULL,
+    reservation_time TIMESTAMP NOT NULL,
+    party_size INTEGER NOT NULL CHECK (party_size > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'CONFIRMED',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_reservation_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_reservation_table
+        FOREIGN KEY (table_id)
+        REFERENCES tables(id)
+        ON DELETE CASCADE,
+    CONSTRAINT check_party_size
+        CHECK (party_size > 0)
+);
+
+-- =========================================
+-- ORDERS
+-- =========================================
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    restaurant_id INTEGER NOT NULL,
+    reservation_id INTEGER,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    total NUMERIC(10,2) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_order_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_order_restaurant
+        FOREIGN KEY (restaurant_id)
+        REFERENCES restaurants(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_order_reservation
+        FOREIGN KEY (reservation_id)
+        REFERENCES reservations(id)
+        ON DELETE SET NULL
+);
+
+-- =========================================
+-- ORDER ITEMS
+-- =========================================
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL CHECK (quantity > 0),
+    price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+    CONSTRAINT fk_orderitem_order
+        FOREIGN KEY (order_id)
+        REFERENCES orders(id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_orderitem_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(id)
+        ON DELETE RESTRICT
+);
+
+-- =========================================
+-- ÍNDICES (performance)
+-- =========================================
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_restaurants_admin ON restaurants(admin_id);
+CREATE INDEX idx_tables_restaurant ON tables(restaurant_id);
+CREATE INDEX idx_reservations_time ON reservations(reservation_time);
+CREATE INDEX idx_orders_user ON orders(user_id);
+CREATE INDEX idx_order_items_order ON order_items(order_id);
+
+-- =========================================
+-- DATOS INICIALES
+-- =========================================
+
+INSERT INTO roles (name) VALUES
+('CLIENT'),
+('ADMIN');
+
+
+-- =========================================
+-- USUARIOS
+-- =========================================
+
+INSERT INTO users (name, email, password_hash, role_id)
+VALUES
+('Admin Restaurante 1', 'admin1@test.com', 'hashed_pw', 2),
+('Admin Restaurante 2', 'admin2@test.com', 'hashed_pw', 2),
+('Cliente 1', 'cliente1@test.com', 'hashed_pw', 1),
+('Cliente 2', 'cliente2@test.com', 'hashed_pw', 1);
+
+-- =========================================
+-- RESTAURANTES
+-- =========================================
+
+INSERT INTO restaurants (name, address, phone, admin_id)
+VALUES
+('La Parrilla Tica', 'San José Centro', '2222-1111', 1),
+('Pizza Express', 'Cartago Centro', '2555-2222', 2);
+
+-- =========================================
+-- MESAS
+-- =========================================
+
+INSERT INTO tables (restaurant_id, table_number, capacity)
+VALUES
+-- Restaurante 1
+(1, 1, 2),
+(1, 2, 4),
+(1, 3, 6),
+
+-- Restaurante 2
+(2, 1, 2),
+(2, 2, 4);
+
+-- =========================================
+-- MENÚS
+-- =========================================
+
+INSERT INTO menus (restaurant_id, name)
+VALUES
+(1, 'Menú Principal'),
+(2, 'Menú Pizzas');
+
+-- =========================================
+-- PRODUCTOS
+-- =========================================
+
+INSERT INTO products (menu_id, name, description, category, price)
+VALUES
+-- Restaurante 1
+(1, 'Casado', 'Arroz, frijoles, carne', 'Comida Típica', 3500),
+(1, 'Gallo Pinto', 'Desayuno típico', 'Desayuno', 2500),
+(1, 'Jugo Natural', 'Frutas frescas', 'Bebidas', 1200),
+
+-- Restaurante 2
+(2, 'Pizza Pepperoni', 'Pizza mediana', 'Comida Rápida', 8000),
+(2, 'Pizza Margarita', 'Pizza clásica', 'Comida Rápida', 7500);
+
+-- =========================================
+-- RESERVAS
+-- =========================================
+
+INSERT INTO reservations (user_id, table_id, reservation_time, party_size, status)
+VALUES
+(3, 2, '2026-03-20 19:00:00', 3, 'CONFIRMED'),
+(4, 3, '2026-03-21 20:00:00', 5, 'CONFIRMED');
+
+-- =========================================
+-- PEDIDOS
+-- =========================================
+
+INSERT INTO orders (user_id, restaurant_id, reservation_id, status, total)
+VALUES
+(3, 1, 1, 'PENDING', 4700),
+(4, 2, NULL, 'PENDING', 8000);
+
+-- =========================================
+-- DETALLE DE PEDIDOS
+-- =========================================
+
+INSERT INTO order_items (order_id, product_id, quantity, price)
+VALUES
+-- Pedido 1
+(1, 1, 1, 3500),  -- Casado
+(1, 3, 1, 1200),  -- Jugo
+
+-- Pedido 2
+(2, 4, 1, 8000);  -- Pizza Pepperoni
+
+
+
+------------------------------------------------------------------------------
+
+nuevo
+-- =========================================
+-- USER LOCATIONS 
+-- =========================================
+
+CREATE TABLE user_locations (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE,
+    latitude NUMERIC(10,7) NOT NULL,
+    longitude NUMERIC(10,7) NOT NULL,
+    address TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_location_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+-- =========================================
+-- DELIVERY DRIVERS 
+-- =========================================
+
+CREATE TABLE delivery_drivers (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================================
+-- DELIVERY ASSIGNMENTS 
+-- Un pedido solo puede tener un repartidor
+-- =========================================
+
+CREATE TABLE delivery_assignments (
+    id SERIAL PRIMARY KEY,
+
+    order_id INTEGER NOT NULL UNIQUE,
+
+    driver_id INTEGER NOT NULL,
+
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_assignment_order
+        FOREIGN KEY (order_id)
+        REFERENCES orders(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_assignment_driver
+        FOREIGN KEY (driver_id)
+        REFERENCES delivery_drivers(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_user_locations_user
+ON user_locations(user_id);
+
+CREATE INDEX idx_drivers_active
+ON delivery_drivers(active);
+
+CREATE INDEX idx_delivery_assignment_driver
+ON delivery_assignments(driver_id);
+
+-- =========================================
+-- UBICACIONES DE CLIENTES
+-- =========================================
+
+INSERT INTO user_locations
+(user_id, latitude, longitude, address)
+VALUES
+(3, 9.9325000, -84.0795000, 'San José Centro'),
+(4, 9.8644000, -83.9194000, 'Cartago Centro');
+
+-- =========================================
+-- REPARTIDORES
+-- =========================================
+
+INSERT INTO delivery_drivers
+(name, phone)
+VALUES
+('Juan Pérez', '8888-1111'),
+('María Gómez', '8888-2222'),
+('Carlos Rojas', '8888-3333');
+
+-- =========================================
+-- ASIGNACIONES DE PEDIDOS
+-- =========================================
+
+INSERT INTO delivery_assignments
+(order_id, driver_id)
+VALUES
+(1, 1),
+(2, 2);
