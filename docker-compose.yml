@@ -264,7 +264,7 @@ services:
     environment:
       SERVICE_NAME: metastore
       DB_DRIVER: postgres
-      IS_RESUME: "true"
+      IS_RESUME: "false"
       SERVICE_OPTS: >
         -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres_hive:5432/metastore
         -Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver
