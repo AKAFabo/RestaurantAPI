@@ -56,12 +56,12 @@ with DAG(
         echo 'Cargando datos transformados en Hive...'
 
         docker exec hive-server beeline -u jdbc:hive2://localhost:10000/restaurant_dw -e "
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_time.csv' INTO TABLE dim_time;
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_user.csv' INTO TABLE dim_user;
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_product.csv' INTO TABLE dim_product;
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_restaurant.csv' INTO TABLE dim_restaurant;
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_location.csv' INTO TABLE dim_location;
-        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/fact_orders.csv' INTO TABLE fact_orders;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_time.csv' OVERWRITE INTO TABLE dim_time;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_user.csv' OVERWRITE INTO TABLE dim_user;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_product.csv' OVERWRITE INTO TABLE dim_product;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_restaurant.csv' OVERWRITE INTO TABLE dim_restaurant;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/dim_location.csv' OVERWRITE INTO TABLE dim_location;
+        LOAD DATA LOCAL INPATH '/tmp/etl_data/dw_output/fact_orders.csv' OVERWRITE INTO TABLE fact_orders;
         "
 
         echo 'Carga en Hive completada.'
