@@ -291,6 +291,7 @@ services:
     volumes:
       - ./hive/lib/postgresql-42.7.3.jar:/opt/hive/lib/postgresql-42.7.3.jar
       - hive_warehouse:/opt/hive/data/warehouse
+      - etl_data:/tmp/etl_data
       
   spark-service:
     build:
@@ -298,14 +299,21 @@ services:
     container_name: spark-service
     volumes:
       - ./spark-service:/app
-      - hive_warehouse:/opt/hive/data/warehouse   
+      - hive_warehouse:/opt/hive/data/warehouse
       - spark_ivy_cache:/root/.ivy2
+      - etl_data:/tmp/etl_data
     depends_on:
       - hive-server
+      - db
     restart: "no"
     environment:
       - PYSPARK_SUBMIT_ARGS=pyspark-shell
       - PYTHONPATH=/app
+      - PG_HOST=db
+      - PG_PORT=5432
+      - PG_USER=${PG_USER}
+      - PG_PASSWORD=${PG_PASSWORD}
+      - PG_DB=${PG_DB}
     mem_limit: 2g
     ports:
       - "8000:8000"
@@ -330,11 +338,97 @@ services:
     networks:
       - default
 
+############ AIRFLOW ##############
+
+  airflow-db:
+    image: postgres:16
+    container_name: airflow-db
+    restart: always
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow_db_data:/var/lib/postgresql/data
+
+  airflow-init:
+    build:
+      context: ./airflow
+    container_name: airflow-init
+    depends_on:
+      - airflow-db
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'restaurant_airflow_secret'
+      _AIRFLOW_WWW_USER_CREATE: 'true'
+      _AIRFLOW_WWW_USER_USERNAME: admin
+      _AIRFLOW_WWW_USER_PASSWORD: admin
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+      - etl_data:/tmp/etl_data
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create
+               --username admin
+               --password admin
+               --firstname Admin
+               --lastname User
+               --role Admin
+               --email admin@example.com || true"
+
+  airflow-webserver:
+    build:
+      context: ./airflow
+    container_name: airflow-webserver
+    restart: always
+    depends_on:
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'restaurant_airflow_secret'
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+      - etl_data:/tmp/etl_data
+    command: webserver
+
+  airflow-scheduler:
+    build:
+      context: ./airflow
+    container_name: airflow-scheduler
+    restart: always
+    depends_on:
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-db:5432/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__SECRET_KEY: 'restaurant_airflow_secret'
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
+      - etl_data:/tmp/etl_data
+    command: scheduler
+
 networks:
   default:
-    name: tarea1bd2-network
-
-  
+    name: tarea1bd2-network 
       
 volumes:
  
@@ -350,3 +444,5 @@ volumes:
   configsvr_data:
   spark_ivy_cache:
   metabase_data:
+  airflow_db_data:
+  etl_data:
